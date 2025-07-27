@@ -123,7 +123,7 @@ cd server
 # Create .env file with the following variables:
 NODE_ENV=development
 PORT=5000
-MONGODB_URI=mongodb+srv://your-username:your-password@your-cluster.mongodb.net/bazaarbuddy
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/bazaarbuddy
 JWT_SECRET=your-super-secret-jwt-key-here
 CLIENT_URL=http://localhost:3000
 ```

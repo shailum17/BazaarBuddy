@@ -43,7 +43,7 @@ PORT=5000
 # Database
 MONGODB_URI=mongodb://localhost:27017/bazaarbuddy
 # Or use MongoDB Atlas:
-# MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/bazaarbuddy
+# MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/bazaarbuddy
 
 # JWT Secret
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production

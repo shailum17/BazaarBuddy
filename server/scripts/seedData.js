@@ -6,7 +6,7 @@ require('dotenv').config();
 
 const connectDB = async () => {
   try {
-    const uri = "mongodb+srv://shailum17:LkWe7qawtfCjRBDc@bazaarbuddy.lanyasg.mongodb.net/bazaarbuddy?retryWrites=true&w=majority&appName=BazaarBuddy";
+    const uri = process.env.MONGODB_URI || "mongodb://localhost:27017/bazaarbuddy";
     await mongoose.connect(uri);
     console.log('MongoDB connected for seeding');
   } catch (error) {
