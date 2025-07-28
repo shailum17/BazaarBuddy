@@ -68,6 +68,28 @@ router.post('/register', [
     }
   } catch (error) {
     console.error('Registration error:', error);
+    
+    // Handle MongoDB duplicate key errors
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      return res.status(400).json({ 
+        success: false,
+        message: `${field.charAt(0).toUpperCase() + field.slice(1)} already exists` 
+      });
+    }
+    
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => ({
+        path: err.path,
+        msg: err.message
+      }));
+      return res.status(400).json({ 
+        success: false,
+        errors: errors 
+      });
+    }
+    
     res.status(500).json({ 
       success: false,
       message: 'Server error during registration' 

@@ -117,7 +117,8 @@ userSchema.virtual('fullName').get(function() {
 
 // Static method to find by email
 userSchema.statics.findByEmail = function(email) {
-  return this.findOne({ email: email.toLowerCase() });
+  if (!email) return null;
+  return this.findOne({ email: email.toLowerCase().trim() });
 };
 
 // Instance method to update stats

@@ -97,6 +97,7 @@ const Register = () => {
       }
     } catch (error) {
       console.error('Registration error:', error);
+      
       if (error.response?.data?.errors) {
         // Handle validation errors from backend
         const backendErrors = {};
@@ -104,6 +105,16 @@ const Register = () => {
           backendErrors[err.path] = err.msg;
         });
         setErrors(backendErrors);
+        toast.error('Please fix the errors in the form');
+      } else if (error.response?.data?.message) {
+        // Handle general error messages
+        toast.error(error.response.data.message);
+      } else if (error.code === 'ERR_NETWORK') {
+        // Handle network errors
+        toast.error('Network error. Please check your connection and try again.');
+      } else {
+        // Handle unknown errors
+        toast.error('Registration failed. Please try again.');
       }
     } finally {
       setLoading(false);

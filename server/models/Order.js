@@ -220,7 +220,23 @@ orderSchema.statics.getStats = function(userId, role) {
         },
         deliveredOrders: {
           $sum: { $cond: [{ $eq: ['$status', 'delivered'] }, 1, 0] }
+        },
+        uniqueSuppliers: {
+          $addToSet: '$supplier'
+        },
+        uniqueCustomers: {
+          $addToSet: '$vendor'
         }
+      }
+    },
+    {
+      $project: {
+        totalOrders: 1,
+        totalRevenue: 1,
+        pendingOrders: 1,
+        deliveredOrders: 1,
+        uniqueSuppliers: { $size: '$uniqueSuppliers' },
+        uniqueCustomers: { $size: '$uniqueCustomers' }
       }
     }
   ]);

@@ -30,7 +30,8 @@ router.get('/dashboard', async (req, res) => {
           totalOrders: 0,
           totalRevenue: 0,
           pendingOrders: 0,
-          deliveredOrders: 0
+          deliveredOrders: 0,
+          uniqueCustomers: 0
         },
         recentOrders,
         topProducts

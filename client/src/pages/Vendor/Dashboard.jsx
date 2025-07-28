@@ -41,7 +41,7 @@ const VendorDashboard = () => {
         totalOrders: dashboardData.stats?.totalOrders || 0,
         activeOrders: dashboardData.stats?.pendingOrders || 0,
         totalSpent: dashboardData.stats?.totalRevenue || 0,
-        suppliersCount: 0 // Will be calculated from orders
+        suppliersCount: dashboardData.stats?.uniqueSuppliers || 0
       });
 
       setRecentOrders(dashboardData.recentOrders || []);
@@ -155,7 +155,7 @@ const VendorDashboard = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Suppliers</p>
-              <p className="text-2xl font-semibold text-gray-900">{topSuppliers.length}</p>
+              <p className="text-2xl font-semibold text-gray-900">{stats.suppliersCount}</p>
             </div>
           </div>
         </div>

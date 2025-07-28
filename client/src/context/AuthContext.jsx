@@ -97,7 +97,15 @@ export const AuthProvider = ({ children }) => {
       
       return true;
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Registration failed');
+      console.error('Registration error in AuthContext:', error);
+      
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else if (error.code === 'ERR_NETWORK') {
+        toast.error('Network error. Please check your connection and try again.');
+      } else {
+        toast.error('Registration failed. Please try again.');
+      }
       return false;
     }
   };

@@ -29,85 +29,33 @@ const VendorSuppliers = () => {
 
   const fetchSuppliers = async () => {
     try {
-      // Mock data for demonstration
-      const mockSuppliers = [
-        {
-          id: 1,
-          name: 'Fresh Vegetables Co.',
-          rating: 4.8,
-          reviews: 156,
-          distance: '2.5 km',
-          categories: ['vegetables'],
-          products: ['Potatoes', 'Onions', 'Tomatoes', 'Carrots'],
-          minOrder: 500,
-          deliveryTime: 'Same day',
-          image: '🥬'
-        },
-        {
-          id: 2,
-          name: 'Quality Spices',
-          rating: 4.6,
-          reviews: 89,
-          distance: '1.8 km',
-          categories: ['spices'],
-          products: ['Red Chilli', 'Turmeric', 'Coriander', 'Cumin'],
-          minOrder: 300,
-          deliveryTime: 'Same day',
-          image: '🌶️'
-        },
-        {
-          id: 3,
-          name: 'Daily Dairy',
-          rating: 4.9,
-          reviews: 234,
-          distance: '3.2 km',
-          categories: ['dairy'],
-          products: ['Milk', 'Curd', 'Butter', 'Cheese'],
-          minOrder: 200,
-          deliveryTime: 'Same day',
-          image: '🥛'
-        },
-        {
-          id: 4,
-          name: 'Organic Fruits',
-          rating: 4.7,
-          reviews: 67,
-          distance: '4.1 km',
-          categories: ['fruits'],
-          products: ['Apples', 'Bananas', 'Oranges', 'Mangoes'],
-          minOrder: 400,
-          deliveryTime: 'Next day',
-          image: '🍎'
-        },
-        {
-          id: 5,
-          name: 'Premium Grains',
-          rating: 4.5,
-          reviews: 123,
-          distance: '2.8 km',
-          categories: ['grains'],
-          products: ['Rice', 'Wheat', 'Pulses', 'Flour'],
-          minOrder: 600,
-          deliveryTime: 'Same day',
-          image: '🌾'
-        },
-        {
-          id: 6,
-          name: 'Pure Oils',
-          rating: 4.4,
-          reviews: 78,
-          distance: '3.5 km',
-          categories: ['oils'],
-          products: ['Mustard Oil', 'Cooking Oil', 'Ghee'],
-          minOrder: 800,
-          deliveryTime: 'Same day',
-          image: '🫒'
-        }
-      ];
+      setLoading(true);
+      
+      // Fetch real suppliers from API
+      const response = await api.get('/vendors/suppliers');
+      const suppliersData = response.data.data || [];
+      
+      // Transform the data to match the expected format
+      const transformedSuppliers = suppliersData.map(supplier => ({
+        id: supplier._id,
+        name: supplier.name,
+        rating: supplier.stats?.rating || 0,
+        reviews: supplier.stats?.reviews || 0,
+        distance: '2-5 km', // This would need to be calculated based on location
+        categories: supplier.categories || ['general'],
+        products: supplier.products || [],
+        minOrder: supplier.minOrder || 500,
+        deliveryTime: supplier.deliveryTime || 'Same day',
+        image: '🏪',
+        location: supplier.location,
+        trustScore: supplier.trustScore || 0
+      }));
 
-      setSuppliers(mockSuppliers);
+      setSuppliers(transformedSuppliers);
     } catch (error) {
       console.error('Error fetching suppliers:', error);
+      // Fallback to empty array if API fails
+      setSuppliers([]);
     } finally {
       setLoading(false);
     }

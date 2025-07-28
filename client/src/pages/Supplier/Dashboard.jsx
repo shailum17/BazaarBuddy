@@ -40,7 +40,7 @@ const SupplierDashboard = () => {
         totalOrders: dashboardData.stats?.totalOrders || 0,
         pendingOrders: dashboardData.stats?.pendingOrders || 0,
         totalRevenue: dashboardData.stats?.totalRevenue || 0,
-        customersCount: 0 // Will be calculated from orders
+        customersCount: dashboardData.stats?.uniqueCustomers || 0
       });
 
       setRecentOrders(dashboardData.recentOrders || []);
