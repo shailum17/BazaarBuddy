@@ -10,7 +10,13 @@ const productSchema = new mongoose.Schema({
   supplier: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
+    validate: {
+      validator: function(v) {
+        return v != null && v.toString().length > 0;
+      },
+      message: 'Supplier ID is required and cannot be empty'
+    }
   },
   category: {
     type: String,
@@ -84,7 +90,8 @@ const productSchema = new mongoose.Schema({
   pricing: {
     basePrice: {
       type: Number,
-      required: true
+      required: true,
+      min: [0.01, 'Base price must be greater than 0']
     },
     bulkDiscount: {
       type: Number,
@@ -94,7 +101,8 @@ const productSchema = new mongoose.Schema({
     },
     bulkThreshold: {
       type: Number,
-      default: 10
+      default: 10,
+      min: [1, 'Bulk threshold must be at least 1']
     }
   },
   delivery: {

@@ -134,24 +134,7 @@ orderSchema.index({ status: 1 });
 orderSchema.index({ orderNumber: 1 });
 orderSchema.index({ createdAt: -1 });
 
-// Generate order number
-orderSchema.pre('save', async function(next) {
-  if (this.isNew) {
-    const date = new Date();
-    const year = date.getFullYear().toString().slice(-2);
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    
-    // Get count of orders for today
-    const today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const count = await this.constructor.countDocuments({
-      createdAt: { $gte: today }
-    });
-    
-    this.orderNumber = `BB${year}${month}${day}${(count + 1).toString().padStart(4, '0')}`;
-  }
-  next();
-});
+// Order number is now generated in the API route for better control
 
 // Virtual for order summary
 orderSchema.virtual('orderSummary').get(function() {

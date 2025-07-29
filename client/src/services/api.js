@@ -27,7 +27,13 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      // Fixed: Don't use hard redirect, let components handle navigation
+      // window.location.href = '/login';
+      
+      // Dispatch custom event for auth failure
+      window.dispatchEvent(new CustomEvent('auth:unauthorized', {
+        detail: { message: 'Session expired. Please login again.' }
+      }));
     }
     return Promise.reject(error);
   }

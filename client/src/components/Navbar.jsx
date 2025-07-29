@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import { Menu, X, ShoppingCart, Package, User, LogOut, Settings } from 'lucide-react';
+import CartIcon from './CartIcon';
 
-const Navbar = () => {
+const Navbar = ({ onCartClick }) => {
   const { user, logout, isAuthenticated, isVendor, isSupplier } = useAuth();
+  const { itemCount } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
 
@@ -62,6 +65,11 @@ const Navbar = () => {
 
               {/* User Menu */}
               <div className="hidden md:flex items-center space-x-4">
+                {/* Cart Icon for Vendors */}
+                {isVendor && (
+                  <CartIcon onClick={onCartClick} />
+                )}
+                
                 <div className="flex items-center space-x-2">
                   <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
                     <User className="w-4 h-4 text-primary-600" />
@@ -130,6 +138,22 @@ const Navbar = () => {
                   <span>{item.label}</span>
                 </Link>
               ))}
+              {/* Cart for Vendors in Mobile */}
+              {isVendor && (
+                <div className="border-t border-gray-200 pt-4 mt-4">
+                  <button
+                    onClick={() => {
+                      onCartClick();
+                      setIsMenuOpen(false);
+                    }}
+                    className="flex items-center space-x-2 w-full px-3 py-2 text-left text-gray-700 hover:text-primary-600"
+                  >
+                    <ShoppingCart className="w-4 h-4" />
+                    <span>Cart ({itemCount} items)</span>
+                  </button>
+                </div>
+              )}
+              
               <div className="border-t border-gray-200 pt-4 mt-4">
                 <div className="flex items-center space-x-2 px-3 py-2">
                   <div className="w-6 h-6 bg-primary-100 rounded-full flex items-center justify-center">

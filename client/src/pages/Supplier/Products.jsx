@@ -38,7 +38,7 @@ const SupplierProducts = () => {
     { value: 'g', label: 'Gram (g)' },
     { value: 'l', label: 'Liter (L)' },
     { value: 'ml', label: 'Milliliter (ml)' },
-    { value: 'pcs', label: 'Pieces (pcs)' },
+    { value: 'piece', label: 'Pieces (pcs)' },
     { value: 'dozen', label: 'Dozen' },
     { value: 'pack', label: 'Pack' }
   ];

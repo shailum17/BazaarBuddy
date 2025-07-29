@@ -41,7 +41,7 @@ router.get('/dashboard', async (req, res) => {
   }
 });
 
-// @desc    Get all suppliers
+// @desc    Get all suppliers with products
 // @route   GET /api/vendors/suppliers
 // @access  Private (Vendor only)
 router.get('/suppliers', async (req, res) => {
@@ -61,9 +61,33 @@ router.get('/suppliers', async (req, res) => {
       query.location = { $regex: location, $options: 'i' };
     }
 
-    const suppliers = await User.find(query)
+    // Get all suppliers
+    const allSuppliers = await User.find(query)
       .select('name location businessDetails stats trustScore')
-      .limit(20);
+      .limit(50);
+
+    // Filter suppliers that have products
+    const suppliersWithProducts = [];
+    
+    for (const supplier of allSuppliers) {
+      const productCount = await Product.countDocuments({ 
+        supplier: supplier._id, 
+        isAvailable: true, 
+        quantity: { $gt: 0 } 
+      });
+      
+      if (productCount > 0) {
+        suppliersWithProducts.push({
+          ...supplier.toObject(),
+          productCount
+        });
+      }
+    }
+
+    // Sort by product count and limit to 20
+    const suppliers = suppliersWithProducts
+      .sort((a, b) => b.productCount - a.productCount)
+      .slice(0, 20);
 
     res.json({
       success: true,
@@ -86,7 +110,12 @@ router.get('/suppliers/:id/products', async (req, res) => {
     const { id } = req.params;
     const { search, category } = req.query;
     
-    let query = { supplier: id, isAvailable: true, quantity: { $gt: 0 } };
+    let query = { 
+      supplier: id, 
+      isAvailable: true, 
+      quantity: { $gt: 0 },
+      supplier: { $exists: true, $ne: null } // Ensure supplier ID exists
+    };
     
     if (search) {
       query.$or = [
@@ -123,12 +152,18 @@ router.get('/products/search', async (req, res) => {
   try {
     const { search, category, location, minPrice, maxPrice, sortBy = 'rating', page = 1, limit = 20 } = req.query;
     
-    let query = { isAvailable: true, quantity: { $gt: 0 } };
+    let query = { 
+      isAvailable: true, 
+      quantity: { $gt: 0 },
+      supplier: { $exists: true, $ne: null } // Only products with supplier IDs
+    };
     
     if (search) {
+      // Fixed: Sanitize search input to prevent regex injection
+      const sanitizedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } }
+        { name: { $regex: sanitizedSearch, $options: 'i' } },
+        { description: { $regex: sanitizedSearch, $options: 'i' } }
       ];
     }
     
@@ -171,8 +206,10 @@ router.get('/products/search', async (req, res) => {
     // Filter by location if specified
     let filteredProducts = products;
     if (location) {
+      // Fixed: Sanitize location search
+      const sanitizedLocation = location.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       filteredProducts = products.filter(product => 
-        product.supplier.location.toLowerCase().includes(location.toLowerCase())
+        product.supplier.location.toLowerCase().includes(sanitizedLocation.toLowerCase())
       );
     }
 
@@ -325,10 +362,49 @@ router.post('/orders', async (req, res) => {
   try {
     const { supplierId, items, deliveryAddress, deliveryDate, deliveryTime, notes } = req.body;
 
-    if (!supplierId || !items || !Array.isArray(items) || items.length === 0) {
+    // Comprehensive validation with specific error messages
+    const validationErrors = [];
+
+    if (!supplierId) {
+      validationErrors.push('Supplier ID is required');
+    }
+
+    if (!items || !Array.isArray(items)) {
+      validationErrors.push('Items must be an array');
+    } else if (items.length === 0) {
+      validationErrors.push('At least one item is required');
+    } else {
+      // Validate each item
+      items.forEach((item, index) => {
+        if (!item.productId) {
+          validationErrors.push(`Item ${index + 1}: Product ID is required`);
+        }
+        if (!item.quantity || item.quantity <= 0) {
+          validationErrors.push(`Item ${index + 1}: Valid quantity is required`);
+        }
+      });
+    }
+
+    if (!deliveryAddress || !deliveryAddress.trim()) {
+      validationErrors.push('Delivery address is required');
+    }
+
+    if (!deliveryDate) {
+      validationErrors.push('Delivery date is required');
+    } else {
+      const selectedDate = new Date(deliveryDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (selectedDate < today) {
+        validationErrors.push('Delivery date cannot be in the past');
+      }
+    }
+
+    if (validationErrors.length > 0) {
       return res.status(400).json({
         success: false,
-        message: 'Supplier ID and items are required'
+        message: validationErrors.join(', ')
       });
     }
 
@@ -375,18 +451,45 @@ router.post('/orders', async (req, res) => {
     const deliveryFee = subtotal >= 500 ? 0 : 50; // Free delivery for orders >= ₹500
     const total = subtotal + deliveryFee;
 
+    // Generate order number
+    const date = new Date();
+    const year = date.getFullYear().toString().slice(-2);
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const timestamp = Date.now().toString().slice(-6);
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    const orderNumber = `BB${year}${month}${day}${timestamp}${random}`;
+
+    console.log('Generated order number:', orderNumber);
+    console.log('Order data to create:', {
+      orderNumber,
+      vendor: req.user._id,
+      supplier: supplierId,
+      itemsCount: orderItems.length,
+      subtotal,
+      deliveryFee,
+      total
+    });
+
     // Create order
     const order = await Order.create({
+      orderNumber,
       vendor: req.user._id,
       supplier: supplierId,
       items: orderItems,
       subtotal,
       deliveryFee,
       total,
-      deliveryAddress,
+      deliveryAddress: {
+        street: deliveryAddress,
+        city: '',
+        state: '',
+        pincode: '',
+        landmark: ''
+      },
       deliveryDate: new Date(deliveryDate),
-      deliveryTime,
-      notes: { vendor: notes }
+      deliveryTime: deliveryTime || 'anytime',
+      notes: { vendor: notes || '' }
     });
 
     // Update product quantities
@@ -423,9 +526,27 @@ router.post('/orders', async (req, res) => {
     });
   } catch (error) {
     console.error('Create order error:', error);
+    
+    // Handle specific Mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: validationErrors.join(', ')
+      });
+    }
+    
+    // Handle duplicate key errors (order number)
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Order number already exists. Please try again.'
+      });
+    }
+    
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error occurred while creating order'
     });
   }
 });

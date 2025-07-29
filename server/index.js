@@ -32,7 +32,7 @@ connectDB();
 // Socket.io setup
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: process.env.CLIENT_URL || "http://localhost:3001",
     methods: ["GET", "POST"]
   }
 });
@@ -46,7 +46,7 @@ global.socketService = socketService;
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CLIENT_URL || "http://localhost:3000",
+  origin: process.env.CLIENT_URL || "http://localhost:3001",
   credentials: true
 }));
 app.use(morgan('combined'));
@@ -66,6 +66,28 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     connectedUsers: socketService.getConnectedUsersCount()
   });
+});
+
+// Test products endpoint (for debugging)
+app.get('/api/test/products', async (req, res) => {
+  try {
+    const Product = require('./models/Product');
+    const products = await Product.find({}).populate('supplier', 'name email');
+    res.json({
+      success: true,
+      count: products.length,
+      products: products.map(p => ({
+        id: p._id,
+        name: p.name,
+        price: p.price,
+        unit: p.unit,
+        supplier: p.supplier?.name || 'Unknown'
+      }))
+    });
+  } catch (error) {
+    console.error('Test products error:', error);
+    res.status(500).json({ success: false, message: 'Error fetching products' });
+  }
 });
 
 // Error handling middleware

@@ -28,15 +28,31 @@ export const AuthProvider = ({ children }) => {
     } else {
       setLoading(false);
     }
-  }, []);
+
+    // Fixed: Listen for auth unauthorized events
+    const handleAuthUnauthorized = (event) => {
+      setUser(null);
+      setLoading(false);
+      toast.error(event.detail.message || 'Session expired. Please login again.');
+      navigate('/login');
+    };
+
+    window.addEventListener('auth:unauthorized', handleAuthUnauthorized);
+
+    return () => {
+      window.removeEventListener('auth:unauthorized', handleAuthUnauthorized);
+    };
+  }, [navigate]);
 
   const fetchUser = async () => {
     try {
       const response = await api.get('/auth/me');
       setUser(response.data.user);
     } catch (error) {
+      console.error('Fetch user error:', error);
       localStorage.removeItem('token');
       delete api.defaults.headers.common['Authorization'];
+      // Fixed: Don't automatically redirect, let the event handler do it
     } finally {
       setLoading(false);
     }
@@ -68,6 +84,7 @@ export const AuthProvider = ({ children }) => {
       
       return true;
     } catch (error) {
+      console.error('Login error:', error);
       toast.error(error.response?.data?.message || 'Login failed');
       return false;
     }
@@ -129,6 +146,7 @@ export const AuthProvider = ({ children }) => {
       toast.success('Profile updated successfully');
       return true;
     } catch (error) {
+      console.error('Profile update error:', error);
       toast.error(error.response?.data?.message || 'Profile update failed');
       return false;
     }

@@ -5,10 +5,19 @@
 @layer base {
   html {
     font-family: 'Noto Sans Devanagari', system-ui, sans-serif;
+    /* Fixed: Add proper text-size-adjust for better browser compatibility */
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
   }
   
   body {
     @apply bg-gray-50 text-gray-900;
+    /* Fixed: Ensure proper text rendering */
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
