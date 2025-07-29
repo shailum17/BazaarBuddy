@@ -17,12 +17,14 @@ import VendorProducts from './pages/Vendor/Products';
 import VendorOrders from './pages/Vendor/Orders';
 import VendorProfile from './pages/Vendor/Profile';
 import Checkout from './pages/Vendor/Checkout';
+import VendorTrackOrder from './pages/Vendor/TrackOrder';
 
 // Supplier Pages
 import SupplierDashboard from './pages/Supplier/Dashboard';
 import SupplierProducts from './pages/Supplier/Products';
 import SupplierOrders from './pages/Supplier/Orders';
 import SupplierProfile from './pages/Supplier/Profile';
+import SupplierTrackOrder from './pages/Supplier/TrackOrder';
 
 function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -87,6 +89,14 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/vendor/orders/:orderId/track"
+              element={
+                <ProtectedRoute allowedRoles={['vendor']}>
+                  <VendorTrackOrder />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Supplier Routes */}
             <Route
@@ -118,6 +128,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['supplier']}>
                   <SupplierProfile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/supplier/orders/:orderId/track"
+              element={
+                <ProtectedRoute allowedRoles={['supplier']}>
+                  <SupplierTrackOrder />
                 </ProtectedRoute>
               }
             />

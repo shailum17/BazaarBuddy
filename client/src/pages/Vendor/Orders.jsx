@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Package, CheckCircle, XCircle, Search, MessageCircle, Eye, Star } from 'lucide-react';
+import { Clock, Package, CheckCircle, XCircle, Search, MessageCircle, Eye, Star, Truck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import Chat from '../../components/Chat';
 
 const VendorOrders = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -222,6 +224,13 @@ const VendorOrders = () => {
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => navigate(`/vendor/orders/${order._id}/track`)}
+                        className="flex items-center space-x-1 px-3 py-1 text-sm text-blue-600 hover:text-blue-700"
+                      >
+                        <Truck className="w-4 h-4" />
+                        <span>Track Order</span>
+                      </button>
                       <button
                         onClick={() => openChat(order)}
                         className="flex items-center space-x-1 px-3 py-1 text-sm text-primary-600 hover:text-primary-700"

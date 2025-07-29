@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Package, CheckCircle, XCircle, Search, MessageCircle, Eye } from 'lucide-react';
+import { Clock, Package, CheckCircle, XCircle, Search, MessageCircle, Eye, Truck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import Chat from '../../components/Chat';
 
 const SupplierOrders = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -235,6 +237,13 @@ const SupplierOrders = () => {
                   {getStatusText(order.status)}
                 </span>
                 <div className="mt-2 flex gap-2">
+                  <button
+                    onClick={() => navigate(`/supplier/orders/${order._id}/track`)}
+                    className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                    title="Track order"
+                  >
+                    <Truck className="w-4 h-4" />
+                  </button>
                   <button
                     onClick={() => openChat(order)}
                     className="p-1 text-blue-600 hover:bg-blue-50 rounded"
