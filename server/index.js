@@ -49,11 +49,14 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 app.use(cors({
-  origin: process.env.CLIENT_URL || "http://localhost:3001",
+  origin: [
+    "https://bazaar-buddy-y9q8zzpq6-shailum17s-projects.vercel.app",
+    "http://localhost:3001"
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
+}));;
 
 // Add cache control headers
 app.use((req, res, next) => {
