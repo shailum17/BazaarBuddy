@@ -6,7 +6,7 @@ const getApiBaseUrl = () => {
     return '/api';
   }
   
-  // In production, use the environment variable
+  // In production, use the environment variable (frontend domain for same-origin calls)
   const apiUrl = import.meta.env.VITE_API_URL;
   
   // Debug information (always log in production to help with troubleshooting)

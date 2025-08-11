@@ -13,7 +13,12 @@ class SocketService {
       this.disconnect();
     }
 
-    this.socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000', {
+    // Use frontend domain in production; dev falls back to localhost server
+    const baseUrl = import.meta.env.DEV
+      ? 'http://localhost:5000'
+      : (import.meta.env.VITE_API_URL || window.location.origin);
+
+    this.socket = io(baseUrl, {
       auth: {
         token
       }

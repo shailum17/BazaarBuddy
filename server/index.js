@@ -1,5 +1,4 @@
 const express = require('express');
-const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
@@ -29,14 +28,8 @@ const server = createServer(app);
 // Connect to MongoDB
 connectDB();
 
-// Socket.io setup
-const io = new Server(server, {
-  cors: {
-    origin: (origin, callback) => callback(null, true),
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true,
-  },
-});
+// Socket.io setup (no CORS restrictions)
+const io = new Server(server, {});
 
 // Initialize socket service
 const socketService = new SocketService(io);
@@ -48,16 +41,7 @@ global.socketService = socketService;
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
-// Open CORS: reflect any Origin and allow credentials
-const corsOptions = {
-  origin: true,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-};
-
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+// No Express CORS middleware
 
 // Add cache control headers
 app.use((req, res, next) => {
