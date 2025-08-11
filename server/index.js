@@ -24,12 +24,19 @@ const { errorHandler } = require('./middleware/errorMiddleware');
 
 const app = express();
 const server = createServer(app);
+const isVercel = !!process.env.VERCEL;
 
 // Connect to MongoDB
 connectDB();
 
-// Socket.io setup (no CORS restrictions)
-const io = new Server(server, {});
+// Socket.io setup
+const io = new Server(server, {
+  cors: {
+    origin: true,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  },
+});
 
 // Initialize socket service
 const socketService = new SocketService(io);
@@ -103,11 +110,13 @@ app.use('*', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-server.listen(PORT, () => {
-  console.log(`🚀 BazaarBuddy Server running on port ${PORT}`);
-  console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
-});
+if (!isVercel) {
+  server.listen(PORT, () => {
+    console.log(`🚀 BazaarBuddy Server running on port ${PORT}`);
+    console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
+  });
+}
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
@@ -117,4 +126,9 @@ process.on('SIGTERM', () => {
   });
 });
 
-module.exports = { app, io }; 
+// Export Vercel-compatible handler
+if (isVercel) {
+  module.exports = (req, res) => app(req, res);
+} else {
+  module.exports = { app, io };
+}
