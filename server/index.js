@@ -29,13 +29,23 @@ const server = createServer(app);
 // Connect to MongoDB
 connectDB();
 
+// Build allowed origins from env
+const allowedOriginsFromEnv = (process.env.CORS_ORIGINS || process.env.CLIENT_URL || '')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+const defaultAllowedOrigins = [
+  'http://localhost:3001',
+];
+const allowedOrigins = Array.from(new Set([...allowedOriginsFromEnv, ...defaultAllowedOrigins]));
+
 // Socket.io setup
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:3001",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true
-  }
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    credentials: true,
+  },
 });
 
 // Initialize socket service
@@ -48,15 +58,21 @@ global.socketService = socketService;
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
-app.use(cors({
-  origin: [
-    "https://bazaar-buddy-y9q8zzpq6-shailum17s-projects.vercel.app",
-    "http://localhost:3001"
-  ],
+const corsOptions = {
+  origin: function(origin, callback) {
+    // Allow non-browser or same-origin requests (no Origin header)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));;
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+};
+
+app.use(cors(corsOptions));
+// Explicitly handle preflight across all routes
+app.options('*', cors(corsOptions));
 
 // Add cache control headers
 app.use((req, res, next) => {
