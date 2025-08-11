@@ -49,8 +49,15 @@ const Register = () => {
 
     if (!formData.password) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+    } else {
+      const hasMinLength = formData.password.length >= 8;
+      const hasUpper = /[A-Z]/.test(formData.password);
+      const hasLower = /[a-z]/.test(formData.password);
+      const hasDigit = /\d/.test(formData.password);
+      const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(formData.password);
+      if (!hasMinLength || !hasUpper || !hasLower || !hasDigit || !hasSpecial) {
+        newErrors.password = 'Password must be at least 8 chars and include upper, lower, number, and special character';
+      }
     }
 
     if (!formData.confirmPassword) {
