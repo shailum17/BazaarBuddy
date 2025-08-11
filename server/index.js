@@ -64,6 +64,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
+// Root route for uptime checks and to avoid 404s on '/'
+app.get('/', (req, res) => {
+  res.json({
+    status: 'OK',
+    message: 'BazaarBuddy API root',
+    health: '/api/health',
+  });
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/vendors', vendorRoutes);
 app.use('/api/suppliers', supplierRoutes);
