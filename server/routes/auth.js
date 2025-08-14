@@ -9,12 +9,41 @@ const router = express.Router();
 // @route   POST /api/auth/register
 // @access  Public
 router.post('/register', [
-  body('name').trim().isLength({ min: 2 }).withMessage('Name must be at least 2 characters'),
-  body('email').isEmail().normalizeEmail().withMessage('Please enter a valid email'),
-  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-  body('phone').matches(/^[0-9]{10}$/).withMessage('Please enter a valid 10-digit phone number'),
-  body('location').trim().notEmpty().withMessage('Location is required'),
-  body('role').isIn(['vendor', 'supplier']).withMessage('Role must be vendor or supplier')
+  body('name')
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Name must be between 2 and 100 characters')
+    .matches(/^[a-zA-Z\s]+$/)
+    .withMessage('Name can only contain letters and spaces'),
+  body('password')
+    .isLength({ min: 8, max: 128 })
+    .withMessage('Password must be between 8 and 128 characters')
+    .matches(/[A-Z]/)
+    .withMessage('Password must include at least one uppercase letter')
+    .matches(/[a-z]/)
+    .withMessage('Password must include at least one lowercase letter')
+    .matches(/\d/)
+    .withMessage('Password must include at least one number')
+    .matches(/[!@#$%^&*(),.?":{}|<>]/)
+    .withMessage('Password must include at least one special character'),
+  body('location')
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Location must be between 2 and 100 characters'),
+  body('role')
+    .isIn(['vendor', 'supplier'])
+    .withMessage('Role must be vendor or supplier'),
+  body('email')
+    .optional()
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please enter a valid email')
+    .isLength({ max: 255 })
+    .withMessage('Email is too long'),
+  body('phone')
+    .optional()
+    .matches(/^[0-9]{10}$/)
+    .withMessage('Please enter a valid 10-digit phone number')
 ], async (req, res) => {
   try {
     // Check for validation errors
@@ -22,30 +51,62 @@ router.post('/register', [
     if (!errors.isEmpty()) {
       return res.status(400).json({ 
         success: false,
-        errors: errors.array() 
+        errors: errors.array().map(err => ({
+          path: err.path,
+          msg: err.msg
+        }))
       });
     }
 
-    const { name, email, password, phone, location, role } = req.body;
+    const { name, email, phone, password, location, role } = req.body;
 
-    // Check if user already exists
-    const userExists = await User.findByEmail(email);
-    if (userExists) {
+    // Validate that either email or phone is provided
+    if (!email && !phone) {
       return res.status(400).json({ 
         success: false,
-        message: 'User already exists with this email' 
+        message: 'Please provide either email or phone number' 
       });
+    }
+
+    // Check if user already exists by email (if provided)
+    if (email) {
+      const userExists = await User.findByEmail(email);
+      if (userExists) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'User already exists with this email' 
+        });
+      }
+    }
+
+    // Check if phone number already exists (if provided)
+    if (phone) {
+      const phoneExists = await User.findByPhone(phone);
+      if (phoneExists) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Phone number already registered' 
+        });
+      }
+    }
+
+    // Create user data object
+    const userData = {
+      name,
+      password,
+      location,
+      role
+    };
+
+    // Add email or phone based on what was provided
+    if (email) {
+      userData.email = email;
+    } else if (phone) {
+      userData.phone = phone;
     }
 
     // Create user
-    const user = await User.create({
-      name,
-      email,
-      password,
-      phone,
-      location,
-      role
-    });
+    const user = await User.create(userData);
 
     if (user) {
       res.status(201).json({
@@ -101,8 +162,18 @@ router.post('/register', [
 // @route   POST /api/auth/login
 // @access  Public
 router.post('/login', [
-  body('email').isEmail().normalizeEmail().withMessage('Please enter a valid email'),
-  body('password').notEmpty().withMessage('Password is required')
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required'),
+  body('email')
+    .optional()
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please enter a valid email'),
+  body('phone')
+    .optional()
+    .matches(/^[0-9]{10}$/)
+    .withMessage('Please enter a valid 10-digit phone number')
 ], async (req, res) => {
   try {
     // Check for validation errors
@@ -110,29 +181,68 @@ router.post('/login', [
     if (!errors.isEmpty()) {
       return res.status(400).json({ 
         success: false,
-        errors: errors.array() 
+        errors: errors.array().map(err => ({
+          path: err.path,
+          msg: err.msg
+        }))
       });
     }
 
-    const { email, password } = req.body;
+    const { email, phone, password } = req.body;
 
-    // Find user by email
-    const user = await User.findByEmail(email);
+    // Validate that either email or phone is provided
+    if (!email && !phone) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Please provide either email or phone number' 
+      });
+    }
+
+    // Find user by email or phone
+    let user;
+    if (email) {
+      user = await User.findByEmail(email);
+    } else {
+      user = await User.findByPhone(phone);
+    }
+
     if (!user) {
       return res.status(401).json({ 
         success: false,
-        message: 'Invalid email or password' 
+        message: 'Invalid credentials' 
+      });
+    }
+
+    // Check if account is locked
+    if (user.isLocked()) {
+      return res.status(423).json({ 
+        success: false,
+        message: 'Account is temporarily locked due to too many failed login attempts. Please try again later.' 
       });
     }
 
     // Check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
+      // Increment login attempts
+      await user.incLoginAttempts();
+      
+      // Check if account should be locked
+      if (user.loginAttempts + 1 >= 5) {
+        return res.status(423).json({ 
+          success: false,
+          message: 'Account locked due to too many failed login attempts. Please try again in 2 hours.' 
+        });
+      }
+      
       return res.status(401).json({ 
         success: false,
-        message: 'Invalid email or password' 
+        message: 'Invalid credentials' 
       });
     }
+
+    // Reset login attempts on successful login
+    await user.resetLoginAttempts();
 
     res.json({
       success: true,
@@ -161,6 +271,13 @@ router.post('/login', [
 router.get('/me', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
     res.json({
       success: true,
       user: user
@@ -178,10 +295,29 @@ router.get('/me', protect, async (req, res) => {
 // @route   PUT /api/auth/profile
 // @access  Private
 router.put('/profile', protect, [
-  body('name').optional().trim().isLength({ min: 2 }).withMessage('Name must be at least 2 characters'),
-  body('email').optional().isEmail().normalizeEmail().withMessage('Please enter a valid email'),
-  body('phone').optional().matches(/^[0-9]{10}$/).withMessage('Please enter a valid 10-digit phone number'),
-  body('location').optional().trim().notEmpty().withMessage('Location is required')
+  body('name')
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Name must be between 2 and 100 characters')
+    .matches(/^[a-zA-Z\s]+$/)
+    .withMessage('Name can only contain letters and spaces'),
+  body('email')
+    .optional()
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please enter a valid email')
+    .isLength({ max: 255 })
+    .withMessage('Email is too long'),
+  body('phone')
+    .optional()
+    .matches(/^[0-9]{10}$/)
+    .withMessage('Please enter a valid 10-digit phone number'),
+  body('location')
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Location must be between 2 and 100 characters')
 ], async (req, res) => {
   try {
     // Check for validation errors
@@ -189,7 +325,10 @@ router.put('/profile', protect, [
     if (!errors.isEmpty()) {
       return res.status(400).json({ 
         success: false,
-        errors: errors.array() 
+        errors: errors.array().map(err => ({
+          path: err.path,
+          msg: err.msg
+        }))
       });
     }
 
@@ -206,6 +345,17 @@ router.put('/profile', protect, [
       }
     }
 
+    // Check if phone is being changed and if it already exists
+    if (phone && phone !== req.user.phone) {
+      const phoneExists = await User.findOne({ phone });
+      if (phoneExists) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Phone number already exists' 
+        });
+      }
+    }
+
     // Update user
     const user = await User.findByIdAndUpdate(
       req.user._id,
@@ -215,7 +365,7 @@ router.put('/profile', protect, [
 
     res.json({
       success: true,
-      data: user
+      user
     });
   } catch (error) {
     console.error('Profile update error:', error);
@@ -230,8 +380,20 @@ router.put('/profile', protect, [
 // @route   PUT /api/auth/change-password
 // @access  Private
 router.put('/change-password', protect, [
-  body('currentPassword').notEmpty().withMessage('Current password is required'),
-  body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters')
+  body('currentPassword')
+    .notEmpty()
+    .withMessage('Current password is required'),
+  body('newPassword')
+    .isLength({ min: 8, max: 128 })
+    .withMessage('New password must be between 8 and 128 characters')
+    .matches(/[A-Z]/)
+    .withMessage('New password must include at least one uppercase letter')
+    .matches(/[a-z]/)
+    .withMessage('New password must include at least one lowercase letter')
+    .matches(/\d/)
+    .withMessage('New password must include at least one number')
+    .matches(/[!@#$%^&*(),.?":{}|<>]/)
+    .withMessage('New password must include at least one special character')
 ], async (req, res) => {
   try {
     // Check for validation errors
@@ -239,7 +401,10 @@ router.put('/change-password', protect, [
     if (!errors.isEmpty()) {
       return res.status(400).json({ 
         success: false,
-        errors: errors.array() 
+        errors: errors.array().map(err => ({
+          path: err.path,
+          msg: err.msg
+        }))
       });
     }
 

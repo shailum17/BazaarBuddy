@@ -97,7 +97,7 @@ const SupplierDashboard = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Welcome back, {user?.name}!</h1>
@@ -108,7 +108,7 @@ const SupplierDashboard = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="card">
+        <div className="card animate-slideUp" style={{animationDelay: '0ms'}}>
           <div className="flex items-center">
             <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
               <ShoppingCart className="w-6 h-6 text-primary-600" />
@@ -120,7 +120,7 @@ const SupplierDashboard = () => {
           </div>
         </div>
 
-        <div className="card">
+        <div className="card animate-slideUp" style={{animationDelay: '80ms'}}>
           <div className="flex items-center">
             <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
               <Clock className="w-6 h-6 text-yellow-600" />
@@ -132,7 +132,7 @@ const SupplierDashboard = () => {
           </div>
         </div>
 
-        <div className="card">
+        <div className="card animate-slideUp" style={{animationDelay: '160ms'}}>
           <div className="flex items-center">
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
               <DollarSign className="w-6 h-6 text-green-600" />
@@ -144,7 +144,7 @@ const SupplierDashboard = () => {
           </div>
         </div>
 
-        <div className="card">
+        <div className="card animate-slideUp" style={{animationDelay: '240ms'}}>
           <div className="flex items-center">
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <Users className="w-6 h-6 text-blue-600" />

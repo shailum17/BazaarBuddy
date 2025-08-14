@@ -9,8 +9,14 @@ const protect = async (req, res, next) => {
       // Get token from header
       token = req.headers.authorization.split(' ')[1];
 
+      // Check if JWT_SECRET is configured
+      if (!process.env.JWT_SECRET) {
+        console.error('JWT_SECRET not configured');
+        return res.status(500).json({ message: 'Server configuration error' });
+      }
+
       // Verify token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       // Get user from token
       req.user = await User.findById(decoded.id).select('-password');
@@ -22,6 +28,13 @@ const protect = async (req, res, next) => {
       next();
     } catch (error) {
       console.error('Token verification error:', error);
+      
+      if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({ message: 'Token expired' });
+      } else if (error.name === 'JsonWebTokenError') {
+        return res.status(401).json({ message: 'Invalid token' });
+      }
+      
       return res.status(401).json({ message: 'Not authorized, token failed' });
     }
   } else {
@@ -46,8 +59,12 @@ const authorize = (...roles) => {
 };
 
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET || 'your-secret-key', {
-    expiresIn: '30d',
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET not configured');
+  }
+  
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: '24h', // Reduced from 30d for better security
   });
 };
 

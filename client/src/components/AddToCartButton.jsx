@@ -43,7 +43,7 @@ const AddToCartButton = ({ product, className = '' }) => {
         <div className="flex items-center border border-gray-300 rounded-lg">
           <button
             onClick={() => handleQuantityChange(quantity - 1)}
-            className="px-3 py-2 hover:bg-gray-50 transition-colors"
+            className="px-3 py-2 hover:bg-gray-50 transition-all"
           >
             <Minus className="w-4 h-4" />
           </button>
@@ -52,7 +52,7 @@ const AddToCartButton = ({ product, className = '' }) => {
           </span>
           <button
             onClick={() => handleQuantityChange(quantity + 1)}
-            className="px-3 py-2 hover:bg-gray-50 transition-colors"
+            className="px-3 py-2 hover:bg-gray-50 transition-all"
           >
             <Plus className="w-4 h-4" />
           </button>
@@ -74,18 +74,18 @@ const AddToCartButton = ({ product, className = '' }) => {
   }
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+      <div className={`flex items-center gap-2 ${className}`}>
       {inCart && (
-        <span className="text-sm text-green-600 font-medium">
+        <span className="text-sm text-green-600 font-medium animate-fadeIn">
           {currentQuantity} in cart
         </span>
       )}
       <button
         onClick={handleAddToCart}
-        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
           inCart
-            ? 'bg-green-100 text-green-700 hover:bg-green-200'
-            : 'bg-primary-600 text-white hover:bg-primary-700'
+            ? 'bg-green-100 text-green-700 hover:bg-green-200 hover:shadow-sm'
+            : 'bg-primary-600 text-white hover:bg-primary-700 hover:shadow-sm'
         }`}
       >
         <ShoppingCart className="w-4 h-4" />

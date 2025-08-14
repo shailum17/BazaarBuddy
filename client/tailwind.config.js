@@ -34,6 +34,42 @@ export default {
       },
       fontFamily: {
         'hindi': ['Noto Sans Devanagari', 'sans-serif'],
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' }
+        },
+        slideUp: {
+          '0%': { opacity: '0', transform: 'translateY(12px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' }
+        },
+        slideDown: {
+          '0%': { opacity: '0', transform: 'translateY(-8px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' }
+        },
+        scaleIn: {
+          '0%': { opacity: '0', transform: 'scale(0.96)' },
+          '100%': { opacity: '1', transform: 'scale(1)' }
+        },
+        float: {
+          '0%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-6px)' },
+          '100%': { transform: 'translateY(0)' }
+        },
+        drift: {
+          '0%': { transform: 'translateX(0) rotate(0deg)' },
+          '50%': { transform: 'translateX(6px) rotate(2deg)' },
+          '100%': { transform: 'translateX(0) rotate(0deg)' }
+        }
+      },
+      animation: {
+        fadeIn: 'fadeIn 500ms ease-out both',
+        slideUp: 'slideUp 500ms ease-out both',
+        slideDown: 'slideDown 300ms ease-out both',
+        scaleIn: 'scaleIn 200ms ease-out both',
+        float: 'float 3s ease-in-out infinite',
+        drift: 'drift 6s ease-in-out infinite'
       }
     },
   },

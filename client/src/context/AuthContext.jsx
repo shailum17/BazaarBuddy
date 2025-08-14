@@ -58,9 +58,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (email, password) => {
+  const login = async (loginData) => {
     try {
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.post('/auth/login', loginData);
       const { token, user } = response.data;
       
       localStorage.setItem('token', token);
@@ -85,7 +85,12 @@ export const AuthProvider = ({ children }) => {
       return true;
     } catch (error) {
       console.error('Login error:', error);
-      toast.error(error.response?.data?.message || 'Login failed');
+      
+      if (error.response?.status === 423) {
+        toast.error('Account locked due to too many failed attempts. Please try again later.');
+      } else {
+        toast.error(error.response?.data?.message || 'Login failed');
+      }
       return false;
     }
   };

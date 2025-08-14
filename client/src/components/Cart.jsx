@@ -63,8 +63,8 @@ const Cart = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fadeIn">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col animate-slideUp">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <div className="flex items-center gap-3">
@@ -108,7 +108,7 @@ const Cart = ({ isOpen, onClose }) => {
               {/* Cart Items */}
               <div className="space-y-4">
                 {items.map((item) => (
-                  <div key={item.product._id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                  <div key={item.product._id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg animate-scaleIn">
                     <div className="flex-1">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -130,14 +130,14 @@ const Cart = ({ isOpen, onClose }) => {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => updateQuantity(item.product._id, item.quantity - 1)}
-                            className="w-8 h-8 rounded-full bg-white border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors"
+                            className="w-8 h-8 rounded-full bg-white border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-all"
                           >
                             <Minus className="w-3 h-3" />
                           </button>
                           <span className="w-12 text-center font-medium">{item.quantity}</span>
                           <button
                             onClick={() => updateQuantity(item.product._id, item.quantity + 1)}
-                            className="w-8 h-8 rounded-full bg-white border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors"
+                            className="w-8 h-8 rounded-full bg-white border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-all"
                           >
                             <Plus className="w-3 h-3" />
                           </button>

@@ -23,19 +23,19 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200;
   }
   
   .btn-secondary {
-    @apply bg-secondary-600 hover:bg-secondary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+    @apply bg-secondary-600 hover:bg-secondary-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200;
   }
   
   .btn-outline {
-    @apply border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+    @apply border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg transition-all duration-200;
   }
   
   .card {
-    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6;
+    @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-300;
   }
   
   .input-field {
@@ -57,4 +57,54 @@
   .badge-error {
     @apply bg-red-100 text-red-800;
   }
+}
+
+@layer utilities {
+  .animate-slideUp {
+    animation: slideUp 0.6s ease-out;
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .animate-drift {
+    animation: drift 4s ease-in-out infinite;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes drift {
+  0%, 100% {
+    transform: translateX(0px) translateY(0px);
+  }
+  25% {
+    transform: translateX(5px) translateY(-5px);
+  }
+  50% {
+    transform: translateX(0px) translateY(-10px);
+  }
+  75% {
+    transform: translateX(-5px) translateY(-5px);
+  }
 } 
+

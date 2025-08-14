@@ -2,6 +2,7 @@ const express = require('express');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
+const cors = require('cors');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 
@@ -32,7 +33,7 @@ connectDB();
 // Socket.io setup
 const io = new Server(server, {
   cors: {
-    origin: true,
+    origin: process.env.CLIENT_URL || "http://localhost:3001",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   },
@@ -44,11 +45,79 @@ const socketService = new SocketService(io);
 // Make socket service available globally
 global.socketService = socketService;
 
-// Middleware
+// Security middleware
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" }
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
 }));
-// No Express CORS middleware
+
+// CORS middleware with more restrictive settings
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      process.env.CLIENT_URL,
+      'http://localhost:3001',
+      'http://localhost:3000',
+      'https://bazaar-buddy-eight.vercel.app'
+    ].filter(Boolean);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "Accept",
+    "X-Requested-With"
+  ],
+  maxAge: 86400 // 24 hours
+};
+
+app.use(cors(corsOptions));
+
+// Handle preflight
+app.options('*', cors(corsOptions));
+
+// Rate limiting middleware
+const rateLimit = require('express-rate-limit');
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // limit each IP to 5 requests per windowMs for auth routes
+  message: {
+    success: false,
+    message: 'Too many authentication attempts, please try again later'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: {
+    success: false,
+    message: 'Too many requests, please try again later'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Add cache control headers
 app.use((req, res, next) => {
@@ -60,8 +129,12 @@ app.use((req, res, next) => {
 });
 
 app.use(morgan('combined'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Apply rate limiting
+app.use('/api/auth', authLimiter);
+app.use('/api', generalLimiter);
 
 // Routes
 // Root route for uptime checks and to avoid 404s on '/'

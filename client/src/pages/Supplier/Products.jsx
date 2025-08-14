@@ -171,7 +171,7 @@ const SupplierProducts = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
@@ -190,7 +190,7 @@ const SupplierProducts = () => {
       </div>
 
       {/* Filters */}
-      <div className="card mb-6">
+      <div className="card mb-6 animate-slideUp">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
@@ -220,8 +220,8 @@ const SupplierProducts = () => {
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProducts.map((product) => (
-          <div key={product._id} className="card">
+        {filteredProducts.map((product, idx) => (
+          <div key={product._id} className="card animate-scaleIn" style={{animationDelay: `${idx*60}ms`}}>
             <div className="flex justify-between items-start mb-4">
               <div className="flex-1">
                 <h3 className="font-semibold text-gray-900 text-lg">{product.name}</h3>

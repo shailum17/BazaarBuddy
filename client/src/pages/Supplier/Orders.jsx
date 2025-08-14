@@ -174,7 +174,7 @@ const SupplierOrders = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Orders</h1>
@@ -184,7 +184,7 @@ const SupplierOrders = () => {
       </div>
 
       {/* Filters */}
-      <div className="card mb-6">
+      <div className="card mb-6 animate-slideUp">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
@@ -218,8 +218,8 @@ const SupplierOrders = () => {
 
       {/* Orders List */}
       <div className="space-y-4">
-        {filteredOrders.map((order) => (
-          <div key={order._id} className="card">
+        {filteredOrders.map((order, idx) => (
+          <div key={order._id} className="card animate-scaleIn" style={{animationDelay: `${idx*60}ms`}}>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 {getStatusIcon(order.status)}

@@ -72,7 +72,7 @@ const Chat = ({ orderId, otherParty, isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 w-80 h-96 bg-white rounded-lg shadow-xl border border-gray-200 flex flex-col z-50">
+    <div className="fixed bottom-4 right-4 w-80 h-96 bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col z-50 animate-slideUp">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-primary-600 text-white rounded-t-lg">
         <div className="flex items-center space-x-2">
@@ -95,7 +95,7 @@ const Chat = ({ orderId, otherParty, isOpen, onClose }) => {
             className={`flex ${message.senderId === user._id ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-xs px-3 py-2 rounded-lg ${
+              className={`max-w-xs px-3 py-2 rounded-lg animate-scaleIn ${
                 message.senderId === user._id
                   ? 'bg-primary-600 text-white'
                   : 'bg-gray-100 text-gray-900'
