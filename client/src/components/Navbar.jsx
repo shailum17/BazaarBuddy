@@ -13,7 +13,7 @@ import {
 } from './Icons';
 
 const Navbar = ({ onCartClick }) => {
-  const { user, logout, isAuthenticated, isVendor, isSupplier } = useAuth();
+  const { user, logout, isAuthenticated, isVendor, isSupplier, loading } = useAuth();
   const { itemCount } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
@@ -48,7 +48,14 @@ const Navbar = ({ onCartClick }) => {
             </Link>
           </div>
 
-          {isAuthenticated ? (
+          {loading ? (
+            // Show loading state - just the logo and brand
+            <div className="flex items-center space-x-4">
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-20"></div>
+              </div>
+            </div>
+          ) : isAuthenticated ? (
             <>
               {/* Desktop Menu */}
               <div className="hidden md:flex items-center space-x-2">

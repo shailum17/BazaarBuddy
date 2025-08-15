@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import socketService from '../services/socketService';
+import { getStoredToken, clearAuthData } from '../utils/authUtils';
 
 const AuthContext = createContext();
 
@@ -21,7 +22,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Check if user is logged in on app start
-    const token = localStorage.getItem('token');
+    const token = getStoredToken();
     if (token) {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       fetchUser();
@@ -50,9 +51,11 @@ export const AuthProvider = ({ children }) => {
       setUser(response.data.user);
     } catch (error) {
       console.error('Fetch user error:', error);
-      localStorage.removeItem('token');
+      // Clear invalid token and reset auth state
+      clearAuthData();
       delete api.defaults.headers.common['Authorization'];
-      // Fixed: Don't automatically redirect, let the event handler do it
+      setUser(null);
+      // Don't redirect - let user stay on current page
     } finally {
       setLoading(false);
     }
@@ -149,7 +152,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    clearAuthData();
     delete api.defaults.headers.common['Authorization'];
     setUser(null);
     

@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import Cart from './components/Cart';
 import ErrorBoundary from './components/ErrorBoundary';
+import TestAuthClear from './components/TestAuthClear';
 
 // Public Pages
 import Home from './pages/Home';
@@ -145,6 +146,9 @@ function App() {
       
       {/* Cart Modal */}
       <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      
+      {/* Test component - remove in production */}
+      <TestAuthClear />
     </div>
   );
 }
