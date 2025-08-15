@@ -4,6 +4,13 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { Menu, X, ShoppingCart, Package, User, LogOut, Settings } from 'lucide-react';
 import CartIcon from './CartIcon';
+import {
+  DashboardIcon,
+  ShoppingCartIcon as CartIconNav,
+  SearchIcon,
+  InventoryIcon,
+  ReceiptIcon
+} from './Icons';
 
 const Navbar = ({ onCartClick }) => {
   const { user, logout, isAuthenticated, isVendor, isSupplier } = useAuth();
@@ -14,18 +21,18 @@ const Navbar = ({ onCartClick }) => {
   const isActive = (path) => location.pathname === path;
 
   const vendorMenuItems = [
-    { path: '/vendor/dashboard', label: 'Dashboard', icon: '📊' },
-    { path: '/vendor/products', label: 'Browse Products', icon: '🛍️' },
-    { path: '/vendor/suppliers', label: 'Find Suppliers', icon: '🔍' },
-    { path: '/vendor/orders', label: 'My Orders', icon: '📦' },
-    { path: '/vendor/profile', label: 'Profile', icon: '👤' },
+    { path: '/vendor/dashboard', label: 'Dashboard', icon: 'DashboardIcon' },
+    { path: '/vendor/products', label: 'Browse Products', icon: 'ShoppingCartIcon' },
+    { path: '/vendor/suppliers', label: 'Find Suppliers', icon: 'SearchIcon' },
+    { path: '/vendor/orders', label: 'My Orders', icon: 'InventoryIcon' },
+    { path: '/vendor/profile', label: 'Profile', icon: 'User' },
   ];
 
   const supplierMenuItems = [
-    { path: '/supplier/dashboard', label: 'Dashboard', icon: '📊' },
-    { path: '/supplier/products', label: 'My Products', icon: '📦' },
-    { path: '/supplier/orders', label: 'Orders', icon: '📋' },
-    { path: '/supplier/profile', label: 'Profile', icon: '👤' },
+    { path: '/supplier/dashboard', label: 'Dashboard', icon: 'DashboardIcon' },
+    { path: '/supplier/products', label: 'My Products', icon: 'InventoryIcon' },
+    { path: '/supplier/orders', label: 'Orders', icon: 'ReceiptIcon' },
+    { path: '/supplier/profile', label: 'Profile', icon: 'User' },
   ];
 
   const menuItems = isVendor ? vendorMenuItems : supplierMenuItems;
@@ -132,7 +139,12 @@ const Navbar = ({ onCartClick }) => {
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <span>{item.icon}</span>
+                  {item.icon === 'DashboardIcon' && <DashboardIcon className="w-5 h-5" />}
+                  {item.icon === 'ShoppingCartIcon' && <CartIconNav className="w-5 h-5" />}
+                  {item.icon === 'SearchIcon' && <SearchIcon className="w-5 h-5" />}
+                  {item.icon === 'InventoryIcon' && <InventoryIcon className="w-5 h-5" />}
+                  {item.icon === 'ReceiptIcon' && <ReceiptIcon className="w-5 h-5" />}
+                  {item.icon === 'User' && <User className="w-5 h-5" />}
                   <span>{item.label}</span>
                 </Link>
               ))}

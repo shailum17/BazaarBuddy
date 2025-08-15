@@ -50,7 +50,16 @@ router.post('/register', [
     .withMessage('OTP is required for registration'),
   body('emailOrPhone')
     .notEmpty()
-    .withMessage('Email or phone number is required')
+    .withMessage('Email or phone number is required'),
+  body('acceptTerms')
+    .isBoolean()
+    .custom((value) => {
+      if (value !== true) {
+        throw new Error('You must accept the Terms of Service and Privacy Policy to continue');
+      }
+      return true;
+    })
+    .withMessage('You must accept the Terms of Service and Privacy Policy to continue')
 ], async (req, res) => {
   try {
     // Check for validation errors
@@ -65,7 +74,7 @@ router.post('/register', [
       });
     }
 
-    const { name, email, phone, password, location, role, otp, emailOrPhone } = req.body;
+    const { name, email, phone, password, location, role, otp, emailOrPhone, acceptTerms } = req.body;
 
     // Validate that either email or phone is provided
     if (!email && !phone) {
@@ -112,7 +121,8 @@ router.post('/register', [
       name,
       password,
       location,
-      role
+      role,
+      acceptTerms
     };
 
     // Add email or phone based on what was provided
@@ -135,7 +145,8 @@ router.post('/register', [
           email: user.email,
           phone: user.phone,
           location: user.location,
-          role: user.role
+          role: user.role,
+          acceptTerms: user.acceptTerms
         }
       });
     } else {

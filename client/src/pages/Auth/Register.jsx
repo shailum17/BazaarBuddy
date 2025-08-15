@@ -4,6 +4,17 @@ import { toast } from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import OTPVerification from '../../components/OTPVerification';
 import api from '../../services/api';
+import { 
+  PersonIcon, 
+  EmailIcon, 
+  PhoneIcon, 
+  LocationIcon, 
+  LockIcon, 
+  VisibilityIcon, 
+  VisibilityOffIcon,
+  RestaurantIcon,
+  EcoIcon
+} from '../../components/Icons';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -21,7 +32,10 @@ const Register = () => {
     confirmPassword: '',
     location: '',
     role: 'vendor',
+    acceptTerms: false,
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -80,6 +94,10 @@ const Register = () => {
       newErrors.location = 'Location must be at least 2 characters';
     }
     
+    if (!formData.acceptTerms) {
+      newErrors.acceptTerms = 'You must accept the Terms of Service and Privacy Policy to continue';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -123,7 +141,8 @@ const Register = () => {
         location: formData.location,
         role: formData.role,
         password: formData.password,
-        emailOrPhone: formData.emailOrPhone
+        emailOrPhone: formData.emailOrPhone,
+        acceptTerms: formData.acceptTerms
       };
       
       if (isEmail) {
@@ -180,8 +199,12 @@ const Register = () => {
               <div className="mx-auto h-12 w-12 bg-primary-600 rounded-xl flex items-center justify-center shadow-md">
                 <span className="text-white font-bold text-xl">B</span>
               </div>
-              <div className="pointer-events-none select-none absolute -top-6 -right-3 text-2xl animate-float">🍔</div>
-              <div className="pointer-events-none select-none absolute -bottom-6 -left-2 text-2xl animate-drift">🥗</div>
+              <div className="pointer-events-none select-none absolute -top-6 -right-3 text-2xl animate-float">
+                <RestaurantIcon className="w-6 h-6 text-orange-500" />
+              </div>
+              <div className="pointer-events-none select-none absolute -bottom-6 -left-2 text-2xl animate-drift">
+                <EcoIcon className="w-6 h-6 text-green-500" />
+              </div>
             </div>
             <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
               Create your account
@@ -198,13 +221,164 @@ const Register = () => {
           
             <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
               <div className="space-y-4">
+                {/* Full Name */}
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                    Full Name
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <PersonIcon className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <input
+                      id="name"
+                      name="name"
+                      type="text"
+                      autoComplete="name"
+                      required
+                      value={formData.name}
+                      onChange={handleChange}
+                      className={`input-field pl-10 ${errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
+                      placeholder="Enter your full name"
+                    />
+                  </div>
+                  {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+                </div>
+
+                {/* Email or Phone */}
+                <div>
+                  <label htmlFor="emailOrPhone" className="block text-sm font-medium text-gray-700">
+                    Email or Phone Number
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      {formData.emailOrPhone.includes('@') ? (
+                        <EmailIcon className="w-5 h-5 text-gray-400" />
+                      ) : (
+                        <PhoneIcon className="w-5 h-5 text-gray-400" />
+                      )}
+                    </div>
+                    <input
+                      id="emailOrPhone"
+                      name="emailOrPhone"
+                      type="text"
+                      autoComplete="email"
+                      required
+                      value={formData.emailOrPhone}
+                      onChange={handleChange}
+                      className={`input-field pl-10 ${errors.emailOrPhone ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
+                      placeholder="Enter your email or phone number"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">You can register with either your email address or phone number</p>
+                  {errors.emailOrPhone && <p className="text-red-500 text-sm mt-1">{errors.emailOrPhone}</p>}
+                </div>
+
+                {/* Location/City */}
+                <div>
+                  <label htmlFor="location" className="block text-sm font-medium text-gray-700">
+                    Location/City
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <LocationIcon className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <input
+                      id="location"
+                      name="location"
+                      type="text"
+                      autoComplete="street-address"
+                      required
+                      value={formData.location}
+                      onChange={handleChange}
+                      className={`input-field pl-10 ${errors.location ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
+                      placeholder="Enter your city"
+                    />
+                  </div>
+                  {errors.location && <p className="text-red-500 text-sm mt-1">{errors.location}</p>}
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <LockIcon className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <input
+                      id="password"
+                      name="password"
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete="new-password"
+                      required
+                      value={formData.password}
+                      onChange={handleChange}
+                      className={`input-field pl-10 ${errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
+                      placeholder="Create a password"
+                    />
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                      <button
+                        type="button"
+                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <VisibilityOffIcon className="w-5 h-5" />
+                        ) : (
+                          <VisibilityIcon className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+                </div>
+
+                {/* Confirm Password */}
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <LockIcon className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      autoComplete="new-password"
+                      required
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      className={`input-field pl-10 ${errors.confirmPassword ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
+                      placeholder="Confirm your password"
+                    />
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                      <button
+                        type="button"
+                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      >
+                        {showConfirmPassword ? (
+                          <VisibilityOffIcon className="w-5 h-5" />
+                        ) : (
+                          <VisibilityIcon className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
+                </div>
+
                 {/* Role Selection */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
                     I am a:
                   </label>
                   <div className="grid grid-cols-2 gap-3">
-                    <label className="relative flex cursor-pointer rounded-lg border bg-white p-4 shadow-sm focus:outline-none">
+                    <label className="relative flex cursor-pointer rounded-lg border-2 bg-white p-4 shadow-sm focus:outline-none transition-all duration-200 hover:shadow-md">
                       <input
                         type="radio"
                         name="role"
@@ -223,12 +397,12 @@ const Register = () => {
                           </span>
                         </span>
                       </span>
-                      <span className={`pointer-events-none absolute -inset-px rounded-lg border-2 ${
-                        formData.role === 'vendor' ? 'border-primary-500' : 'border-transparent'
+                      <span className={`pointer-events-none absolute -inset-px rounded-lg border-2 transition-all duration-200 ${
+                        formData.role === 'vendor' ? 'border-primary-500' : 'border-gray-200'
                       }`} />
                     </label>
                     
-                    <label className="relative flex cursor-pointer rounded-lg border bg-white p-4 shadow-sm focus:outline-none">
+                    <label className="relative flex cursor-pointer rounded-lg border-2 bg-white p-4 shadow-sm focus:outline-none transition-all duration-200 hover:shadow-md">
                       <input
                         type="radio"
                         name="role"
@@ -239,7 +413,7 @@ const Register = () => {
                       />
                       <span className="flex flex-1">
                         <span className="flex flex-col">
-                          <span className="block text-sm font-medium text-gray-900">
+                          <span className="text-sm font-medium text-gray-700">
                             Ingredient Supplier
                           </span>
                           <span className="mt-1 flex items-center text-sm text-gray-500">
@@ -247,124 +421,62 @@ const Register = () => {
                           </span>
                         </span>
                       </span>
-                      <span className={`pointer-events-none absolute -inset-px rounded-lg border-2 ${
-                        formData.role === 'supplier' ? 'border-primary-500' : 'border-transparent'
+                      <span className={`pointer-events-none absolute -inset-px rounded-lg border-2 transition-all duration-200 ${
+                        formData.role === 'supplier' ? 'border-primary-500' : 'border-gray-200'
                       }`} />
                     </label>
                   </div>
                 </div>
+              </div>
 
-                {/* Name */}
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                    Full Name
-                  </label>
+              {/* Terms and Conditions Checkbox */}
+              <div className="flex items-start space-x-3">
+                <div className="flex items-center h-5">
                   <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    autoComplete="name"
+                    id="acceptTerms"
+                    name="acceptTerms"
+                    type="checkbox"
                     required
-                    value={formData.name}
-                    onChange={handleChange}
-                    className={`input-field ${errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
-                    placeholder="Enter your full name"
+                    checked={formData.acceptTerms || false}
+                    onChange={(e) => setFormData(prev => ({ ...prev, acceptTerms: e.target.checked }))}
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded transition-colors"
                   />
-                  {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
                 </div>
-
-                {/* Email or Phone */}
-                <div>
-                  <label htmlFor="emailOrPhone" className="block text-sm font-medium text-gray-700">
-                    Email or Phone Number
+                <div className="text-sm">
+                  <label htmlFor="acceptTerms" className={`cursor-pointer transition-colors ${formData.acceptTerms ? 'text-gray-900' : 'text-gray-700'}`}>
+                    I agree to the{' '}
+                    <a href="/terms" className="text-primary-600 hover:text-primary-700 font-medium">
+                      Terms of Service
+                    </a>
+                    {' '}and{' '}
+                    <a href="/privacy" className="text-primary-600 hover:text-primary-700 font-medium">
+                      Privacy Policy
+                    </a>
                   </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="text-gray-400">
-                        {formData.emailOrPhone.includes('@') ? '📧' : '📱'}
-                      </span>
-                    </div>
-                    <input
-                      id="emailOrPhone"
-                      name="emailOrPhone"
-                      type="text"
-                      autoComplete="email"
-                      required
-                      value={formData.emailOrPhone}
-                      onChange={handleChange}
-                      className={`input-field pl-10 ${errors.emailOrPhone ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
-                      placeholder="Enter your email or phone number"
-                    />
-                  </div>
-                  {errors.emailOrPhone && <p className="text-red-500 text-sm mt-1">{errors.emailOrPhone}</p>}
-                </div>
-
-                {/* Password */}
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                    Password
-                  </label>
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                    value={formData.password}
-                    onChange={handleChange}
-                    className={`input-field ${errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
-                    placeholder="Create a strong password"
-                  />
-                  {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
-                </div>
-
-                {/* Confirm Password */}
-                <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                    Confirm Password
-                  </label>
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    className={`input-field ${errors.confirmPassword ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
-                    placeholder="Confirm your password"
-                  />
-                  {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
-                </div>
-
-                {/* Location */}
-                <div>
-                  <label htmlFor="location" className="block text-sm font-medium text-gray-700">
-                    Location
-                  </label>
-                  <input
-                    id="location"
-                    name="location"
-                    type="text"
-                    autoComplete="street-address"
-                    required
-                    value={formData.location}
-                    onChange={handleChange}
-                    className={`input-field ${errors.location ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
-                    placeholder="Enter your city or area"
-                  />
-                  {errors.location && <p className="text-red-500 text-sm mt-1">{errors.location}</p>}
                 </div>
               </div>
+              {errors.acceptTerms && (
+                <p className="text-red-500 text-sm mt-1">{errors.acceptTerms}</p>
+              )}
 
               <div>
                 <button
                   type="submit"
-                  disabled={loading || otpLoading}
-                  className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  disabled={loading || otpLoading || !formData.acceptTerms}
+                  className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg transition-all duration-200 ${
+                    !formData.acceptTerms 
+                      ? 'bg-gray-400 cursor-not-allowed text-gray-200' 
+                      : 'text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500'
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   {loading ? 'Processing...' : otpLoading ? 'Sending OTP...' : 'Create Account'}
                 </button>
+                
+                {!formData.acceptTerms && (
+                  <p className="mt-2 text-center text-sm text-gray-500">
+                    Please accept the terms and conditions to continue
+                  </p>
+                )}
               </div>
             </form>
           </div>

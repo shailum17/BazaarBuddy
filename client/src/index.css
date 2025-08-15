@@ -19,6 +19,34 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+  
+  /* Material Icons styling */
+  .material-icons,
+  .material-icons-outlined {
+    font-family: 'Material Icons', 'Material Icons Outlined';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  .material-icons.text-lg,
+  .material-icons-outlined.text-lg {
+    font-size: 20px;
+  }
+  
+  .material-icons.text-2xl,
+  .material-icons-outlined.text-2xl {
+    font-size: 24px;
+  }
 }
 
 @layer components {

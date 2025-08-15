@@ -59,6 +59,11 @@ const userSchema = new mongoose.Schema({
     enum: ['vendor', 'supplier', 'admin'],
     default: 'vendor'
   },
+  acceptTerms: {
+    type: Boolean,
+    required: [true, 'Terms and conditions must be accepted'],
+    default: false
+  },
   isVerified: {
     type: Boolean,
     default: false

@@ -4,6 +4,12 @@ import { toast } from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import OTPVerification from '../../components/OTPVerification';
 import api from '../../services/api';
+import { 
+  EmailIcon, 
+  PhoneIcon, 
+  RestaurantIcon,
+  EcoIcon
+} from '../../components/Icons';
 
 const Login = () => {
   const { login } = useAuth();
@@ -148,8 +154,12 @@ const Login = () => {
               <div className="mx-auto h-12 w-12 bg-primary-600 rounded-xl flex items-center justify-center shadow-md">
                 <span className="text-white font-bold text-xl">B</span>
               </div>
-              <div className="pointer-events-none select-none absolute -top-6 -right-3 text-2xl animate-float">🍔</div>
-              <div className="pointer-events-none select-none absolute -bottom-6 -left-2 text-2xl animate-drift">🥗</div>
+              <div className="pointer-events-none select-none absolute -top-6 -right-3 text-2xl animate-float">
+                <RestaurantIcon className="w-6 h-6 text-orange-500" />
+              </div>
+              <div className="pointer-events-none select-none absolute -bottom-6 -left-2 text-2xl animate-drift">
+                <EcoIcon className="w-6 h-6 text-orange-500" />
+              </div>
             </div>
             <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
               Sign in to your account
@@ -173,9 +183,11 @@ const Login = () => {
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="text-gray-400">
-                        {formData.emailOrPhone.includes('@') ? '📧' : '📱'}
-                      </span>
+                      {formData.emailOrPhone.includes('@') ? (
+                        <EmailIcon className="w-5 h-5 text-gray-400" />
+                      ) : (
+                        <PhoneIcon className="w-5 h-5 text-gray-400" />
+                      )}
                     </div>
                     <input
                       id="emailOrPhone"
