@@ -60,7 +60,15 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (loginData) => {
     try {
-      const response = await api.post('/auth/login', loginData);
+      // Get OTP from the loginData (it should be added by the OTP verification component)
+      const { otp, emailOrPhone, ...credentials } = loginData;
+      
+      const response = await api.post('/auth/login', {
+        ...credentials,
+        otp,
+        emailOrPhone
+      });
+      
       const { token, user } = response.data;
       
       localStorage.setItem('token', token);
@@ -97,7 +105,15 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const response = await api.post('/auth/register', userData);
+      // Get OTP from the userData (it should be added by the OTP verification component)
+      const { otp, emailOrPhone, ...registrationData } = userData;
+      
+      const response = await api.post('/auth/register', {
+        ...registrationData,
+        otp,
+        emailOrPhone
+      });
+      
       const { token, user } = response.data;
       
       localStorage.setItem('token', token);

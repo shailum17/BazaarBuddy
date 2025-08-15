@@ -1,6 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
+const OTP = require('../models/OTP');
 const { protect, generateToken } = require('../middleware/authMiddleware');
 
 const router = express.Router();
@@ -43,7 +44,13 @@ router.post('/register', [
   body('phone')
     .optional()
     .matches(/^[0-9]{10}$/)
-    .withMessage('Please enter a valid 10-digit phone number')
+    .withMessage('Please enter a valid 10-digit phone number'),
+  body('otp')
+    .notEmpty()
+    .withMessage('OTP is required for registration'),
+  body('emailOrPhone')
+    .notEmpty()
+    .withMessage('Email or phone number is required')
 ], async (req, res) => {
   try {
     // Check for validation errors
@@ -58,13 +65,23 @@ router.post('/register', [
       });
     }
 
-    const { name, email, phone, password, location, role } = req.body;
+    const { name, email, phone, password, location, role, otp, emailOrPhone } = req.body;
 
     // Validate that either email or phone is provided
     if (!email && !phone) {
       return res.status(400).json({ 
         success: false,
         message: 'Please provide either email or phone number' 
+      });
+    }
+
+    // Verify OTP before proceeding with registration
+    const verificationResult = await OTP.verifyOTP(emailOrPhone, otp, 'registration');
+    
+    if (!verificationResult.valid) {
+      return res.status(400).json({
+        success: false,
+        message: verificationResult.message
       });
     }
 
@@ -173,7 +190,13 @@ router.post('/login', [
   body('phone')
     .optional()
     .matches(/^[0-9]{10}$/)
-    .withMessage('Please enter a valid 10-digit phone number')
+    .withMessage('Please enter a valid 10-digit phone number'),
+  body('otp')
+    .notEmpty()
+    .withMessage('OTP is required for login'),
+  body('emailOrPhone')
+    .notEmpty()
+    .withMessage('Email or phone number is required')
 ], async (req, res) => {
   try {
     // Check for validation errors
@@ -188,13 +211,23 @@ router.post('/login', [
       });
     }
 
-    const { email, phone, password } = req.body;
+    const { email, phone, password, otp, emailOrPhone } = req.body;
 
     // Validate that either email or phone is provided
     if (!email && !phone) {
       return res.status(400).json({ 
         success: false,
         message: 'Please provide either email or phone number' 
+      });
+    }
+
+    // Verify OTP before proceeding with login
+    const verificationResult = await OTP.verifyOTP(emailOrPhone, otp, 'login');
+    
+    if (!verificationResult.valid) {
+      return res.status(400).json({
+        success: false,
+        message: verificationResult.message
       });
     }
 

@@ -1,79 +1,34 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
-import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin } from 'lucide-react';
-import toast from 'react-hot-toast';
+import OTPVerification from '../../components/OTPVerification';
+import api from '../../services/api';
 
 const Register = () => {
+  const navigate = useNavigate();
+  const { register } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [showOTP, setShowOTP] = useState(false);
+  const [pendingRegistration, setPendingRegistration] = useState(null);
+  const [errors, setErrors] = useState({});
+
   const [formData, setFormData] = useState({
     name: '',
     emailOrPhone: '',
     password: '',
     confirmPassword: '',
     location: '',
-    role: 'vendor', // default role
+    role: 'vendor',
   });
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState({});
-  
-  const { register } = useAuth();
-  const navigate = useNavigate();
-
-  const validateForm = () => {
-    const newErrors = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
-    } else if (formData.name.length < 2) {
-      newErrors.name = 'Name must be at least 2 characters';
-    }
-
-    if (!formData.emailOrPhone.trim()) {
-      newErrors.emailOrPhone = 'Email or phone number is required';
-    } else {
-      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.emailOrPhone);
-      const isPhone = /^[0-9]{10}$/.test(formData.emailOrPhone);
-      
-      if (!isEmail && !isPhone) {
-        newErrors.emailOrPhone = 'Please enter a valid email or 10-digit phone number';
-      }
-    }
-
-    if (!formData.location.trim()) {
-      newErrors.location = 'Location is required';
-    }
-
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else {
-      const hasMinLength = formData.password.length >= 8;
-      const hasUpper = /[A-Z]/.test(formData.password);
-      const hasLower = /[a-z]/.test(formData.password);
-      const hasDigit = /\d/.test(formData.password);
-      const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(formData.password);
-      if (!hasMinLength || !hasUpper || !hasLower || !hasDigit || !hasSpecial) {
-        newErrors.password = 'Password must be at least 8 chars and include upper, lower, number, and special character';
-      }
-    }
-
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
     
     // Clear error when user starts typing
     if (errors[name]) {
@@ -84,6 +39,70 @@ const Register = () => {
     }
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    } else if (formData.name.length < 2) {
+      newErrors.name = 'Name must be at least 2 characters';
+    } else if (!/^[a-zA-Z\s]+$/.test(formData.name)) {
+      newErrors.name = 'Name can only contain letters and spaces';
+    }
+    
+    if (!formData.emailOrPhone.trim()) {
+      newErrors.emailOrPhone = 'Email or phone number is required';
+    } else {
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.emailOrPhone);
+      const isPhone = /^[0-9]{10}$/.test(formData.emailOrPhone);
+      if (!isEmail && !isPhone) {
+        newErrors.emailOrPhone = 'Please enter a valid email or 10-digit phone number';
+      }
+    }
+    
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])/.test(formData.password)) {
+      newErrors.password = 'Password must include uppercase, lowercase, number, and special character';
+    }
+    
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+    
+    if (!formData.location.trim()) {
+      newErrors.location = 'Location is required';
+    } else if (formData.location.length < 2) {
+      newErrors.location = 'Location must be at least 2 characters';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const sendOTP = async () => {
+    setOtpLoading(true);
+    try {
+      const response = await api.post('/otp/send-registration', {
+        emailOrPhone: formData.emailOrPhone
+      });
+
+      if (response.data.success) {
+        toast.success(`OTP sent to your ${formData.emailOrPhone.includes('@') ? 'email' : 'phone'}!`);
+        setShowOTP(true);
+      }
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to send OTP';
+      toast.error(message);
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -91,17 +110,20 @@ const Register = () => {
       toast.error('Please fix the errors in the form');
       return;
     }
-    
+
     setLoading(true);
-    
     try {
-      // Determine if input is email or phone and prepare user data
+      // Send OTP first
+      await sendOTP();
+      
+      // Store registration data for after OTP verification
       const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.emailOrPhone);
       const userData = {
         name: formData.name,
         location: formData.location,
         role: formData.role,
-        password: formData.password
+        password: formData.password,
+        emailOrPhone: formData.emailOrPhone
       };
       
       if (isEmail) {
@@ -110,127 +132,133 @@ const Register = () => {
         userData.phone = formData.emailOrPhone;
       }
       
-      const success = await register(userData);
-      if (success) {
-        // Navigation is handled in the register function
-      }
+      setPendingRegistration(userData);
+      
     } catch (error) {
       console.error('Registration error:', error);
-      
-      if (error.response?.data?.errors) {
-        // Handle validation errors from backend
-        const backendErrors = {};
-        error.response.data.errors.forEach(err => {
-          backendErrors[err.path] = err.msg;
-        });
-        setErrors(backendErrors);
-        toast.error('Please fix the errors in the form');
-      } else if (error.response?.data?.message) {
-        // Handle general error messages
-        toast.error(error.response.data.message);
-      } else if (error.code === 'ERR_NETWORK') {
-        // Handle network errors
-        toast.error('Network error. Please check your connection and try again.');
-      } else {
-        // Handle unknown errors
-        toast.error('Registration failed. Please try again.');
-      }
+      toast.error('Failed to start registration process');
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 animate-slideUp">
-        <div className="bg-white/80 backdrop-blur rounded-2xl shadow-xl ring-1 ring-gray-200 p-8">
-          <div className="relative">
-            <div className="mx-auto h-12 w-12 bg-primary-600 rounded-xl flex items-center justify-center shadow-md">
-              <span className="text-white font-bold text-xl">B</span>
-            </div>
-            <div className="pointer-events-none select-none absolute -top-6 -right-3 text-2xl animate-float">🍔</div>
-            <div className="pointer-events-none select-none absolute -bottom-6 -left-2 text-2xl animate-drift">🥗</div>
-          </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
-            <Link
-              to="/login"
-              className="font-medium text-primary-600 hover:text-primary-700"
-            >
-              sign in to your existing account
-            </Link>
-          </p>
-        
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            <div className="space-y-4">
-              {/* Role Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  I am a:
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <label className="relative flex cursor-pointer rounded-lg border bg-white p-4 shadow-sm focus:outline-none">
-                    <input
-                      type="radio"
-                      name="role"
-                      value="vendor"
-                      checked={formData.role === 'vendor'}
-                      onChange={handleChange}
-                      className="sr-only"
-                    />
-                    <span className="flex flex-1">
-                      <span className="flex flex-col">
-                        <span className="block text-sm font-medium text-gray-900">
-                          Street Food Vendor
-                        </span>
-                        <span className="mt-1 flex items-center text-sm text-gray-500">
-                          I want to buy ingredients
-                        </span>
-                      </span>
-                    </span>
-                    <span className={`pointer-events-none absolute -inset-px rounded-lg border-2 ${
-                      formData.role === 'vendor' ? 'border-primary-500' : 'border-transparent'
-                    }`} />
-                  </label>
-                  
-                  <label className="relative flex cursor-pointer rounded-lg border bg-white p-4 shadow-sm focus:outline-none">
-                    <input
-                      type="radio"
-                      name="role"
-                      value="supplier"
-                      checked={formData.role === 'supplier'}
-                      onChange={handleChange}
-                      className="sr-only"
-                    />
-                    <span className="flex flex-1">
-                      <span className="flex flex-col">
-                        <span className="block text-sm font-medium text-gray-900">
-                          Supplier
-                        </span>
-                        <span className="mt-1 flex items-center text-sm text-gray-500">
-                          I want to sell ingredients
-                        </span>
-                      </span>
-                    </span>
-                    <span className={`pointer-events-none absolute -inset-px rounded-lg border-2 ${
-                      formData.role === 'supplier' ? 'border-primary-500' : 'border-transparent'
-                    }`} />
-                  </label>
-                </div>
-              </div>
+  const handleOTPVerificationSuccess = async (otp) => {
+    if (!pendingRegistration) return;
+    
+    setLoading(true);
+    try {
+      // Add the OTP to the registration data
+      const registrationData = {
+        ...pendingRegistration,
+        otp
+      };
+      
+      const success = await register(registrationData);
+      if (success) {
+        setShowOTP(false);
+        setPendingRegistration(null);
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      toast.error('Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-              {/* Name */}
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                  Full Name
-                </label>
-                <div className="mt-1 relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-gray-400" />
+  const handleOTPCancel = () => {
+    setShowOTP(false);
+    setPendingRegistration(null);
+  };
+
+  return (
+    <>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8 animate-slideUp">
+          <div className="bg-white/80 backdrop-blur rounded-2xl shadow-xl ring-1 ring-gray-200 p-8">
+            <div className="relative">
+              <div className="mx-auto h-12 w-12 bg-primary-600 rounded-xl flex items-center justify-center shadow-md">
+                <span className="text-white font-bold text-xl">B</span>
+              </div>
+              <div className="pointer-events-none select-none absolute -top-6 -right-3 text-2xl animate-float">🍔</div>
+              <div className="pointer-events-none select-none absolute -bottom-6 -left-2 text-2xl animate-drift">🥗</div>
+            </div>
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+              Create your account
+            </h2>
+            <p className="mt-2 text-center text-sm text-gray-600">
+              Or{' '}
+              <Link
+                to="/login"
+                className="font-medium text-primary-600 hover:text-primary-700"
+              >
+                sign in to your existing account
+              </Link>
+            </p>
+          
+            <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+              <div className="space-y-4">
+                {/* Role Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    I am a:
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="relative flex cursor-pointer rounded-lg border bg-white p-4 shadow-sm focus:outline-none">
+                      <input
+                        type="radio"
+                        name="role"
+                        value="vendor"
+                        checked={formData.role === 'vendor'}
+                        onChange={handleChange}
+                        className="sr-only"
+                      />
+                      <span className="flex flex-1">
+                        <span className="flex flex-col">
+                          <span className="block text-sm font-medium text-gray-900">
+                            Street Food Vendor
+                          </span>
+                          <span className="mt-1 flex items-center text-sm text-gray-500">
+                            I want to buy ingredients
+                          </span>
+                        </span>
+                      </span>
+                      <span className={`pointer-events-none absolute -inset-px rounded-lg border-2 ${
+                        formData.role === 'vendor' ? 'border-primary-500' : 'border-transparent'
+                      }`} />
+                    </label>
+                    
+                    <label className="relative flex cursor-pointer rounded-lg border bg-white p-4 shadow-sm focus:outline-none">
+                      <input
+                        type="radio"
+                        name="role"
+                        value="supplier"
+                        checked={formData.role === 'supplier'}
+                        onChange={handleChange}
+                        className="sr-only"
+                      />
+                      <span className="flex flex-1">
+                        <span className="flex flex-col">
+                          <span className="block text-sm font-medium text-gray-900">
+                            Ingredient Supplier
+                          </span>
+                          <span className="mt-1 flex items-center text-sm text-gray-500">
+                            I want to sell ingredients
+                          </span>
+                        </span>
+                      </span>
+                      <span className={`pointer-events-none absolute -inset-px rounded-lg border-2 ${
+                        formData.role === 'supplier' ? 'border-primary-500' : 'border-transparent'
+                      }`} />
+                    </label>
                   </div>
+                </div>
+
+                {/* Name */}
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                    Full Name
+                  </label>
                   <input
                     id="name"
                     name="name"
@@ -239,178 +267,119 @@ const Register = () => {
                     required
                     value={formData.name}
                     onChange={handleChange}
-                    className={`input-field pl-10 ${errors.name ? 'border-red-500 focus:ring-red-500' : ''}`}
+                    className={`input-field ${errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
                     placeholder="Enter your full name"
                   />
+                  {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
                 </div>
-                {errors.name && (
-                  <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-                )}
-              </div>
 
-              {/* Email or Phone */}
-              <div>
-                <label htmlFor="emailOrPhone" className="block text-sm font-medium text-gray-700">
-                  Email or Phone Number
-                </label>
-                <div className="mt-1 relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    {/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.emailOrPhone) ? (
-                      <Mail className="h-5 w-5 text-gray-400" />
-                    ) : (
-                      <Phone className="h-5 w-5 text-gray-400" />
-                    )}
+                {/* Email or Phone */}
+                <div>
+                  <label htmlFor="emailOrPhone" className="block text-sm font-medium text-gray-700">
+                    Email or Phone Number
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span className="text-gray-400">
+                        {formData.emailOrPhone.includes('@') ? '📧' : '📱'}
+                      </span>
+                    </div>
+                    <input
+                      id="emailOrPhone"
+                      name="emailOrPhone"
+                      type="text"
+                      autoComplete="email"
+                      required
+                      value={formData.emailOrPhone}
+                      onChange={handleChange}
+                      className={`input-field pl-10 ${errors.emailOrPhone ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
+                      placeholder="Enter your email or phone number"
+                    />
                   </div>
-                  <input
-                    id="emailOrPhone"
-                    name="emailOrPhone"
-                    type="text"
-                    autoComplete="email"
-                    required
-                    value={formData.emailOrPhone}
-                    onChange={handleChange}
-                    className={`input-field pl-10 ${errors.emailOrPhone ? 'border-red-500 focus:ring-red-500' : ''}`}
-                    placeholder="Enter your email or phone number"
-                  />
+                  {errors.emailOrPhone && <p className="text-red-500 text-sm mt-1">{errors.emailOrPhone}</p>}
                 </div>
-                <p className="mt-1 text-xs text-gray-500">
-                  You can register with either your email address or phone number
-                </p>
-                {errors.emailOrPhone && (
-                  <p className="mt-1 text-sm text-red-600">{errors.emailOrPhone}</p>
-                )}
-              </div>
 
-              {/* Location */}
-              <div>
-                <label htmlFor="location" className="block text-sm font-medium text-gray-700">
-                  Location/City
-                </label>
-                <div className="mt-1 relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <MapPin className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="location"
-                    name="location"
-                    type="text"
-                    required
-                    value={formData.location}
-                    onChange={handleChange}
-                    className={`input-field pl-10 ${errors.location ? 'border-red-500 focus:ring-red-500' : ''}`}
-                    placeholder="Enter your city"
-                  />
-                </div>
-                {errors.location && (
-                  <p className="mt-1 text-sm text-red-600">{errors.location}</p>
-                )}
-              </div>
-              
-              {/* Password */}
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                  Password
-                </label>
-                <div className="mt-1 relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" />
-                  </div>
+                {/* Password */}
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                    Password
+                  </label>
                   <input
                     id="password"
                     name="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type="password"
                     autoComplete="new-password"
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    className={`input-field pl-10 pr-10 ${errors.password ? 'border-red-500 focus:ring-red-500' : ''}`}
-                    placeholder="Create a password"
+                    className={`input-field ${errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
+                    placeholder="Create a strong password"
                   />
-                  <button
-                    type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-gray-400" />
-                    ) : (
-                      <Eye className="h-5 w-5 text-gray-400" />
-                    )}
-                  </button>
+                  {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
                 </div>
-                {errors.password && (
-                  <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-                )}
-              </div>
 
-              {/* Confirm Password */}
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                  Confirm Password
-                </label>
-                <div className="mt-1 relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" />
-                  </div>
+                {/* Confirm Password */}
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                    Confirm Password
+                  </label>
                   <input
                     id="confirmPassword"
                     name="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
+                    type="password"
                     autoComplete="new-password"
                     required
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className={`input-field pl-10 pr-10 ${errors.confirmPassword ? 'border-red-500 focus:ring-red-500' : ''}`}
+                    className={`input-field ${errors.confirmPassword ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
                     placeholder="Confirm your password"
                   />
-                  <button
-                    type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-5 w-5 text-gray-400" />
-                    ) : (
-                      <Eye className="h-5 w-5 text-gray-400" />
-                    )}
-                  </button>
+                  {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
                 </div>
-                {errors.confirmPassword && (
-                  <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
-                )}
+
+                {/* Location */}
+                <div>
+                  <label htmlFor="location" className="block text-sm font-medium text-gray-700">
+                    Location
+                  </label>
+                  <input
+                    id="location"
+                    name="location"
+                    type="text"
+                    autoComplete="street-address"
+                    required
+                    value={formData.location}
+                    onChange={handleChange}
+                    className={`input-field ${errors.location ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
+                    placeholder="Enter your city or area"
+                  />
+                  {errors.location && <p className="text-red-500 text-sm mt-1">{errors.location}</p>}
+                </div>
               </div>
-            </div>
 
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-md"
-              >
-                {loading ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                ) : (
-                  'Create Account'
-                )}
-              </button>
-            </div>
-          </form>
-
-          <div className="text-center">
-            <p className="text-sm text-gray-600">
-              By creating an account, you agree to our{' '}
-              <a href="#" className="font-medium text-primary-600 hover:text-primary-700">
-                Terms of Service
-              </a>{' '}
-              and{' '}
-              <a href="#" className="font-medium text-primary-600 hover:text-primary-700">
-                Privacy Policy
-              </a>
-            </p>
+              <div>
+                <button
+                  type="submit"
+                  disabled={loading || otpLoading}
+                  className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {loading ? 'Processing...' : otpLoading ? 'Sending OTP...' : 'Create Account'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* OTP Verification Modal */}
+      <OTPVerification
+        emailOrPhone={formData.emailOrPhone}
+        type="registration"
+        onVerificationSuccess={handleOTPVerificationSuccess}
+        onCancel={handleOTPCancel}
+        isVisible={showOTP}
+      />
+    </>
   );
 };
 

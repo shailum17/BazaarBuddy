@@ -19,6 +19,7 @@ const SocketService = require('./services/socketService');
 const authRoutes = require('./routes/auth');
 const vendorRoutes = require('./routes/vendors');
 const supplierRoutes = require('./routes/suppliers');
+const otpRoutes = require('./routes/otp');
 
 // Import middleware
 const { errorHandler } = require('./middleware/errorMiddleware');
@@ -147,6 +148,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/otp', otpRoutes);
 app.use('/api/vendors', vendorRoutes);
 app.use('/api/suppliers', supplierRoutes);
 
