@@ -82,8 +82,7 @@ router.post('/send-registration', otpLimiter, [
     }
 
     if (!sendResult.success) {
-      // Delete the OTP record if sending failed
-      await OTP.findByIdAndDelete(otpRecord._id);
+      // The OTP record will expire automatically based on the schema.
       return res.status(500).json({
         success: false,
         message: `Failed to send OTP. Please try again.`
@@ -168,8 +167,7 @@ router.post('/send-login', otpLimiter, [
     }
 
     if (!sendResult.success) {
-      // Delete the OTP record if sending failed
-      await OTP.findByIdAndDelete(otpRecord._id);
+      // The OTP record will expire automatically based on the schema.
       return res.status(500).json({
         success: false,
         message: `Failed to send OTP. Please try again.`
@@ -322,8 +320,7 @@ router.post('/resend', otpLimiter, [
     }
 
     if (!sendResult.success) {
-      // Delete the OTP record if sending failed
-      await OTP.findByIdAndDelete(otpRecord._id);
+      // The OTP record will expire automatically based on the schema.
       return res.status(500).json({
         success: false,
         message: `Failed to send OTP. Please try again.`
