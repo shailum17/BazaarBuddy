@@ -7,18 +7,32 @@ class EmailService {
   }
 
   initializeTransporter() {
-    // For development, use a test account or configure your email service
+    // For development, prioritize Gmail if configured, otherwise use Ethereal
     if (process.env.NODE_ENV === 'development') {
-      // Use Ethereal Email for testing
-      this.transporter = nodemailer.createTransport({
-        host: 'smtp.ethereal.email',
-        port: 587,
-        secure: false,
-        auth: {
-          user: process.env.ETHEREAL_USER || 'test@ethereal.email',
-          pass: process.env.ETHEREAL_PASS || 'test123'
-        }
-      });
+      if (process.env.DEV_SMTP_USER && process.env.DEV_SMTP_PASS) {
+        console.log('📧 Using Gmail for development email...');
+        this.transporter = nodemailer.createTransport({
+          host: process.env.DEV_SMTP_HOST,
+          port: process.env.DEV_SMTP_PORT || 587,
+          secure: process.env.DEV_SMTP_SECURE === 'true',
+          auth: {
+            user: process.env.DEV_SMTP_USER,
+            pass: process.env.DEV_SMTP_PASS
+          }
+        });
+      } else {
+        console.log('📧 Using Ethereal for development email...');
+        // Use Ethereal Email for testing
+        this.transporter = nodemailer.createTransport({
+          host: 'smtp.ethereal.email',
+          port: 587,
+          secure: false,
+          auth: {
+            user: process.env.ETHEREAL_USER || 'test@ethereal.email',
+            pass: process.env.ETHEREAL_PASS || 'test123'
+          }
+        });
+      }
     } else {
       // For production, use configured email service
       this.transporter = nodemailer.createTransport({

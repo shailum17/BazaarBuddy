@@ -30,6 +30,7 @@
     "twilio": "^4.10.0"
   },
   "devDependencies": {
+    "mongodb-memory-server": "^10.2.0",
     "nodemon": "^2.0.22"
   },
   "keywords": [

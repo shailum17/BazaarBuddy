@@ -6,8 +6,8 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  // Add timeout for better error handling
-  timeout: 10000,
+  // Increased timeout for OTP operations which might take longer
+  timeout: 30000,
 });
 
 // Request interceptor to add auth token
@@ -53,4 +53,4 @@ api.interceptors.response.use(
   }
 );
 
-export default api; 
+export default api;
