@@ -193,8 +193,8 @@ const Register = () => {
   return (
     <>
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8 animate-slideUp">
-          <div className="bg-white/80 backdrop-blur rounded-2xl shadow-xl ring-1 ring-gray-200 p-8">
+        <div className="max-w-5xl w-full bg-white/80 backdrop-blur rounded-2xl shadow-xl ring-1 ring-gray-200 grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch p-8">
+          <div className="w-full space-y-8 animate-slideUp">
             <div className="relative">
               <div className="mx-auto h-12 w-12 bg-primary-600 rounded-xl flex items-center justify-center shadow-md">
                 <span className="text-white font-bold text-xl">B</span>
@@ -480,6 +480,9 @@ const Register = () => {
               </div>
             </form>
           </div>
+          <div className="animate-slideUp">
+            <video className="rounded-2xl h-full w-full object-contain" src="/assets/Sign_up.mp4" autoPlay loop muted />
+          </div>
         </div>
       </div>
 
@@ -495,4 +498,4 @@ const Register = () => {
   );
 };
 
-export default Register; 
+export default Register;
