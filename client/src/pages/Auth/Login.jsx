@@ -154,9 +154,7 @@ const Login = () => {
           </div>
           <div className="w-full space-y-8 animate-slideUp">
             <div className="relative">
-              <div className="mx-auto h-12 w-12 bg-primary-600 rounded-xl flex items-center justify-center shadow-md">
-                <span className="text-white font-bold text-xl">B</span>
-              </div>
+              <img src="/assets/Logo.png" alt="BazaarBuddy" className="mx-auto h-12 w-12" />
               <div className="pointer-events-none select-none absolute -top-6 -right-3 text-2xl animate-float">
                 <RestaurantIcon className="w-6 h-6 text-orange-500" />
               </div>

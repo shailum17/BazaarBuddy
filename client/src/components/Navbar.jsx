@@ -43,7 +43,7 @@ const Navbar = ({ onCartClick }) => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2 group">
-              <img src="/vite.svg" alt="BazaarBuddy" className="w-8 h-8 rounded transition-transform duration-200 group-hover:scale-110" />
+              <img src="/assets/Logo.png" alt="BazaarBuddy" className="w-8 h-8 rounded transition-transform duration-200 group-hover:scale-110" />
               <span className="text-xl font-extrabold tracking-tight text-gray-900">BazaarBuddy</span>
             </Link>
           </div>
