@@ -13,7 +13,8 @@
   }
   
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply text-gray-900;
+    background: linear-gradient(to bottom right, #e0f2f7, #c2e0e8); /* Light blue gradient */
     /* Fixed: Ensure proper text rendering */
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;

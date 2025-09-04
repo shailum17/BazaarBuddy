@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import Chat from '../../components/Chat';
+import { useLoading } from '../../context/LoadingContext';
 
 const SupplierOrders = () => {
   const { user } = useAuth();
@@ -13,7 +14,7 @@ const SupplierOrders = () => {
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [loading, setLoading] = useState(true);
+  const { loading, showLoading, hideLoading } = useLoading();
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showChat, setShowChat] = useState(false);
   const [chatOrder, setChatOrder] = useState(null);
@@ -32,6 +33,7 @@ const SupplierOrders = () => {
   }, [searchTerm, statusFilter, orders]);
 
   const fetchOrders = async () => {
+    showLoading();
     try {
       const response = await api.get('/suppliers/orders');
       setOrders(response.data.data.orders);
@@ -39,7 +41,7 @@ const SupplierOrders = () => {
       toast.error('Failed to fetch orders');
       console.error('Fetch orders error:', error);
     } finally {
-      setLoading(false);
+      hideLoading();
     }
   };
 

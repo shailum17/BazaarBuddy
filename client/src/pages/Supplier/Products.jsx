@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, Filter, Package, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useLoading } from '../../context/LoadingContext';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 
 const SupplierProducts = () => {
   const { user } = useAuth();
+  const { loading, showLoading, hideLoading } = useLoading();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [formData, setFormData] = useState({
@@ -52,6 +53,7 @@ const SupplierProducts = () => {
   }, [searchTerm, statusFilter, products]);
 
   const fetchProducts = async () => {
+    showLoading();
     try {
       const response = await api.get('/suppliers/products');
       setProducts(response.data.data.products);
@@ -59,7 +61,7 @@ const SupplierProducts = () => {
       toast.error('Failed to fetch products');
       console.error('Fetch products error:', error);
     } finally {
-      setLoading(false);
+      hideLoading();
     }
   };
 

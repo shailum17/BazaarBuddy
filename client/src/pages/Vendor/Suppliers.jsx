@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Star, MapPin, Package, Filter } from 'lucide-react';
 import api from '../../services/api';
+import { useLoading } from '../../context/LoadingContext';
 
 const VendorSuppliers = () => {
   const [suppliers, setSuppliers] = useState([]);
   const [filteredSuppliers, setFilteredSuppliers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [loading, setLoading] = useState(true);
+  const { loading, showLoading, hideLoading } = useLoading();
 
   const categories = [
     { id: 'all', name: 'All Categories' },
@@ -28,8 +29,8 @@ const VendorSuppliers = () => {
   }, [searchTerm, selectedCategory, suppliers]);
 
   const fetchSuppliers = async () => {
+    showLoading();
     try {
-      setLoading(true);
       
       // Fetch real suppliers from API
       const response = await api.get('/vendors/suppliers');
@@ -57,7 +58,7 @@ const VendorSuppliers = () => {
       // Fallback to empty array if API fails
       setSuppliers([]);
     } finally {
-      setLoading(false);
+      hideLoading();
     }
   };
 

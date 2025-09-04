@@ -3,13 +3,14 @@ import { Search, Filter, ShoppingCart, Star, MapPin, Package, Plus, Minus, Trash
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 import { useCart } from '../../context/CartContext';
+import { useLoading } from '../../context/LoadingContext';
 import AddToCartButton from '../../components/AddToCartButton';
 import ErrorBoundary from '../../components/ErrorBoundary';
 
 const Products = () => {
   const { addToCart, getItemQuantity, isInCart } = useCart();
+  const { loading, showLoading, hideLoading } = useLoading();
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     search: '',
@@ -61,7 +62,7 @@ const Products = () => {
   };
 
   const fetchProducts = async () => {
-    setLoading(true);
+    showLoading();
     try {
       const params = new URLSearchParams({
         ...filters,
@@ -87,7 +88,7 @@ const Products = () => {
       toast.error(error.response?.data?.message || 'Failed to fetch products');
       setProducts([]);
     } finally {
-      setLoading(false);
+      hideLoading();
     }
   };
 

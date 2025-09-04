@@ -17,7 +17,7 @@ const OTPVerification = ({
 
   useEffect(() => {
     if (isVisible && countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      const timer = setTimeout(() => setCountdown(countdown - 1), 100);
       return () => clearTimeout(timer);
     }
   }, [countdown, isVisible]);
@@ -63,7 +63,7 @@ const OTPVerification = ({
 
     setLoading(true);
     try {
-      // Don't verify OTP here - just pass it to parent for verification during registration/login
+      
       onVerificationSuccess(otpString);
     } catch (error) {
       console.error('OTP submission error:', error);
@@ -83,7 +83,7 @@ const OTPVerification = ({
 
       if (response.data.success) {
         toast.success('OTP resent successfully!');
-        setCountdown(60); // 60 seconds cooldown
+        setCountdown(60); 
         setOtp(['', '', '', '', '', '']);
         setError('');
       }

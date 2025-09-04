@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import Cart from './components/Cart';
 import ErrorBoundary from './components/ErrorBoundary';
 import TestAuthClear from './components/TestAuthClear';
+import LoadingSpinner from './components/LoadingSpinner';
+import { useLoading } from './context/LoadingContext';
 
 // Public Pages
 import Home from './pages/Home';
@@ -29,9 +31,23 @@ import SupplierTrackOrder from './pages/Supplier/TrackOrder';
 
 function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const { loading, hideLoading } = useLoading();
+  const location = useLocation();
+
+  useEffect(() => {
+    let timer;
+    if (loading) {
+      timer = setTimeout(() => {
+        hideLoading();
+      }, 5000); // 5-second timeout
+    }
+    return () => clearTimeout(timer);
+  }, [loading, hideLoading]);
+
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {loading && <LoadingSpinner />}
       <Navbar onCartClick={() => setIsCartOpen(true)} />
       <main>
         <ErrorBoundary>
@@ -119,7 +135,7 @@ function App() {
             <Route
               path="/supplier/orders"
               element={
-                <ProtectedRoute allowedRoles={['supplier']}>
+                <ProtectedRoute allowed_roles={['supplier']}>
                   <SupplierOrders />
                 </ProtectedRoute>
               }
@@ -153,4 +169,5 @@ function App() {
   );
 }
 
-export default App; 
+export default App;
+ 
