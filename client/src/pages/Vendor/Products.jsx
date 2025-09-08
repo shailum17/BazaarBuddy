@@ -3,13 +3,11 @@ import { Search, Filter, ShoppingCart, Star, MapPin, Package, Plus, Minus, Trash
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 import { useCart } from '../../context/CartContext';
-import { useLoading } from '../../context/LoadingContext';
 import AddToCartButton from '../../components/AddToCartButton';
 import ErrorBoundary from '../../components/ErrorBoundary';
 
 const Products = () => {
   const { addToCart, getItemQuantity, isInCart } = useCart();
-  const { loading, showLoading, hideLoading } = useLoading();
   const [products, setProducts] = useState([]);
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
@@ -62,7 +60,6 @@ const Products = () => {
   };
 
   const fetchProducts = async () => {
-    showLoading();
     try {
       const params = new URLSearchParams({
         ...filters,
@@ -87,8 +84,6 @@ const Products = () => {
       setError(error.response?.data?.message || 'Failed to fetch products');
       toast.error(error.response?.data?.message || 'Failed to fetch products');
       setProducts([]);
-    } finally {
-      hideLoading();
     }
   };
 
@@ -222,7 +217,6 @@ const Products = () => {
             <h3 className="text-sm font-medium text-blue-800 mb-2">Debug Info</h3>
             <div className="text-xs text-blue-700 space-y-1">
               <p>Products count: {products.length}</p>
-              <p>Loading: {loading.toString()}</p>
               <p>Error: {error || 'None'}</p>
               <p>Filters: {JSON.stringify(filters)}</p>
               <p>Pagination: {JSON.stringify(pagination)}</p>
@@ -258,17 +252,7 @@ const Products = () => {
 
         {/* Products Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {loading ? (
-            // Loading skeleton
-            Array.from({ length: 8 }).map((_, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-sm p-6 animate-pulse">
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded mb-4"></div>
-                <div className="h-6 bg-gray-200 rounded mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded"></div>
-              </div>
-            ))
-          ) : products.length > 0 ? (
+          {products.length > 0 ? (
             products.map((product, idx) => {
               return (
                 <div key={product._id} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-all animate-scaleIn" style={{animationDelay: `${idx*60}ms`}}>

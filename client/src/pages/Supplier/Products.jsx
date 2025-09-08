@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, Filter, Package, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { useLoading } from '../../context/LoadingContext';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 
 const SupplierProducts = () => {
   const { user } = useAuth();
-  const { loading, showLoading, hideLoading } = useLoading();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -53,15 +51,12 @@ const SupplierProducts = () => {
   }, [searchTerm, statusFilter, products]);
 
   const fetchProducts = async () => {
-    showLoading();
     try {
       const response = await api.get('/suppliers/products');
       setProducts(response.data.data.products);
     } catch (error) {
       toast.error('Failed to fetch products');
       console.error('Fetch products error:', error);
-    } finally {
-      hideLoading();
     }
   };
 
@@ -163,14 +158,6 @@ const SupplierProducts = () => {
       [name]: type === 'checkbox' ? checked : value
     }));
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">

@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import Chat from '../../components/Chat';
-import { useLoading } from '../../context/LoadingContext';
 
 const SupplierOrders = () => {
   const { user } = useAuth();
@@ -14,7 +13,6 @@ const SupplierOrders = () => {
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const { loading, showLoading, hideLoading } = useLoading();
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showChat, setShowChat] = useState(false);
   const [chatOrder, setChatOrder] = useState(null);
@@ -33,15 +31,12 @@ const SupplierOrders = () => {
   }, [searchTerm, statusFilter, orders]);
 
   const fetchOrders = async () => {
-    showLoading();
     try {
       const response = await api.get('/suppliers/orders');
       setOrders(response.data.data.orders);
     } catch (error) {
       toast.error('Failed to fetch orders');
       console.error('Fetch orders error:', error);
-    } finally {
-      hideLoading();
     }
   };
 
@@ -166,14 +161,6 @@ const SupplierOrders = () => {
   const canUpdateStatus = (status) => {
     return ['pending', 'accepted', 'preparing', 'in-transit'].includes(status);
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">

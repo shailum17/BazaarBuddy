@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Star, MapPin, Package, Filter } from 'lucide-react';
 import api from '../../services/api';
-import { useLoading } from '../../context/LoadingContext';
 
 const VendorSuppliers = () => {
   const [suppliers, setSuppliers] = useState([]);
   const [filteredSuppliers, setFilteredSuppliers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const { loading, showLoading, hideLoading } = useLoading();
 
   const categories = [
     { id: 'all', name: 'All Categories' },
@@ -29,7 +27,6 @@ const VendorSuppliers = () => {
   }, [searchTerm, selectedCategory, suppliers]);
 
   const fetchSuppliers = async () => {
-    showLoading();
     try {
       
       // Fetch real suppliers from API
@@ -57,8 +54,6 @@ const VendorSuppliers = () => {
       console.error('Error fetching suppliers:', error);
       // Fallback to empty array if API fails
       setSuppliers([]);
-    } finally {
-      hideLoading();
     }
   };
 
@@ -89,14 +84,6 @@ const VendorSuppliers = () => {
     // Navigate to order page or open order modal
     console.log('Order from supplier:', supplierId);
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
