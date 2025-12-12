@@ -332,7 +332,7 @@ const seedData = async () => {
     // await Product.deleteMany({});
     
     const users = await seedUsers();
-    await seedProducts(users);
+    // await seedProducts(users); // Commented out - no sample products needed
     
     console.log('✅ Data seeding completed successfully!');
     console.log('\n📋 Test Accounts:');

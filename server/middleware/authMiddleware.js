@@ -58,14 +58,24 @@ const authorize = (...roles) => {
   };
 };
 
-const generateToken = (id) => {
+const generateToken = (id, expiresIn = '24h') => {
   if (!process.env.JWT_SECRET) {
     throw new Error('JWT_SECRET not configured');
   }
   
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: '24h', // Reduced from 30d for better security
+    expiresIn,
   });
 };
 
-module.exports = { protect, authorize, generateToken }; 
+const generateRefreshToken = (id) => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET not configured');
+  }
+  
+  return jwt.sign({ id, type: 'refresh' }, process.env.JWT_SECRET, {
+    expiresIn: '7d', // Refresh token valid for 7 days
+  });
+};
+
+module.exports = { protect, authorize, generateToken, generateRefreshToken }; 

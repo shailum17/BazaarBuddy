@@ -28,13 +28,9 @@ const userSchema = new mongoose.Schema({
     maxlength: [128, 'Password is too long'],
     validate: {
       validator: function(password) {
-        // Enhanced password complexity validation
-        const hasUpperCase = /[A-Z]/.test(password);
-        const hasLowerCase = /[a-z]/.test(password);
-        const hasNumbers = /\d/.test(password);
-        const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-        
-        return hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar;
+        const { validatePassword } = require('../utils/validation');
+        const errors = validatePassword(password);
+        return errors.length === 0;
       },
       message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
     }

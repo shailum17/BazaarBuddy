@@ -5,10 +5,12 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import Chat from '../../components/Chat';
+import { useLoading } from '../../context/LoadingContext';
 
 const VendorOrders = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { loading, showLoading, hideLoading } = useLoading();
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -26,12 +28,15 @@ const VendorOrders = () => {
   }, [searchTerm, statusFilter, orders]);
 
   const fetchOrders = async () => {
+    showLoading();
     try {
       const response = await api.get('/vendors/orders');
       setOrders(response.data.data.orders);
     } catch (error) {
       toast.error('Failed to fetch orders');
       console.error('Fetch orders error:', error);
+    } finally {
+      hideLoading();
     }
   };
 
@@ -119,6 +124,19 @@ const VendorOrders = () => {
       toast.error('Failed to cancel order');
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading orders...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 animate-fadeIn">

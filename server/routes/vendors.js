@@ -204,11 +204,16 @@ router.get('/products/search', async (req, res) => {
     const total = await Product.countDocuments(query);
 
     // Filter by location if specified
-    let filteredProducts = products;
+    // Filter out products without valid suppliers
+    let filteredProducts = products.filter(product => 
+      product && product.supplier && product.supplier._id
+    );
     if (location) {
       // Fixed: Sanitize location search
       const sanitizedLocation = location.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       filteredProducts = products.filter(product => 
+        product.supplier && 
+        product.supplier.location && 
         product.supplier.location.toLowerCase().includes(sanitizedLocation.toLowerCase())
       );
     }

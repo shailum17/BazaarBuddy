@@ -9,6 +9,11 @@ class SocketService {
     this.io.on('connection', (socket) => {
       console.log('User connected:', socket.id);
 
+      // Handle connection errors
+      socket.on('error', (error) => {
+        console.error('Socket error for user:', socket.id, error);
+      });
+
       // Join user to their personal room
       socket.on('join-user', (userId) => {
         socket.join(`user-${userId}`);

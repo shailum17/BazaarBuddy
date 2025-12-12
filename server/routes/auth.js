@@ -2,7 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const OTP = require('../models/OTP');
-const { protect, generateToken } = require('../middleware/authMiddleware');
+const { protect, generateToken, generateRefreshToken } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -139,6 +139,7 @@ router.post('/register', [
       res.status(201).json({
         success: true,
         token: generateToken(user._id),
+        refreshToken: generateRefreshToken(user._id),
         user: {
           _id: user._id,
           name: user.name,
@@ -291,6 +292,7 @@ router.post('/login', [
     res.json({
       success: true,
       token: generateToken(user._id),
+      refreshToken: generateRefreshToken(user._id),
       user: {
         _id: user._id,
         name: user.name,
@@ -485,6 +487,79 @@ router.put('/change-password', protect, [
     res.status(500).json({ 
       success: false,
       message: 'Server error during password change' 
+    });
+  }
+});
+
+// @desc    Refresh access token
+// @route   POST /api/auth/refresh
+// @access  Public (requires refresh token)
+router.post('/refresh', async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        success: false,
+        message: 'Refresh token is required'
+      });
+    }
+
+    // Verify refresh token
+    const jwt = require('jsonwebtoken');
+    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+
+    if (decoded.type !== 'refresh') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid refresh token'
+      });
+    }
+
+    // Get user
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Generate new tokens
+    const newToken = generateToken(user._id);
+    const newRefreshToken = generateRefreshToken(user._id);
+
+    res.json({
+      success: true,
+      token: newToken,
+      refreshToken: newRefreshToken,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        location: user.location,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Token refresh error:', error);
+    
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Refresh token expired. Please login again'
+      });
+    } else if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid refresh token'
+      });
+    }
+    
+    res.status(500).json({
+      success: false,
+      message: 'Server error during token refresh'
     });
   }
 });
