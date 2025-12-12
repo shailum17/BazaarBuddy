@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import socketService from '../services/socketService';
-import { getStoredToken, clearAuthData } from '../utils/authUtils';
+import { getStoredToken, getStoredRefreshToken, setAuthTokens, clearAuthData } from '../utils/authUtils';
 
 const AuthContext = createContext();
 
@@ -72,9 +72,9 @@ export const AuthProvider = ({ children }) => {
         emailOrPhone
       });
       
-      const { token, user } = response.data;
+      const { token, refreshToken, user } = response.data;
       
-      localStorage.setItem('token', token);
+      setAuthTokens(token, refreshToken);
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setUser(user);
       
@@ -117,9 +117,9 @@ export const AuthProvider = ({ children }) => {
         emailOrPhone
       });
       
-      const { token, user } = response.data;
+      const { token, refreshToken, user } = response.data;
       
-      localStorage.setItem('token', token);
+      setAuthTokens(token, refreshToken);
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setUser(user);
       

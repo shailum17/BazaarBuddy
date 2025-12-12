@@ -14,14 +14,28 @@ class SocketService {
     }
 
     // Use frontend domain in production; dev falls back to localhost server
-    const baseUrl = import.meta.env.DEV
-      ? 'http://localhost:5000'
-      : (import.meta.env.VITE_API_URL || window.location.origin);
+    let baseUrl;
+    if (import.meta.env.DEV) {
+      baseUrl = 'http://localhost:5000';
+    } else {
+      // In production, use the configured API URL or fallback to current origin
+      const apiUrl = import.meta.env.VITE_API_URL;
+      if (apiUrl && apiUrl !== 'https://your-backend-domain.com') {
+        baseUrl = apiUrl.replace(/\/api$/, '').replace(/\/$/, '');
+      } else {
+        baseUrl = window.location.origin;
+      }
+    }
+
+    console.log('Connecting to socket server:', baseUrl);
 
     this.socket = io(baseUrl, {
       auth: {
         token
-      }
+      },
+      transports: ['websocket', 'polling'],
+      timeout: 20000,
+      forceNew: true
     });
 
     this.socket.on('connect', () => {
@@ -37,6 +51,22 @@ class SocketService {
     this.socket.on('connect_error', (error) => {
       console.error('Socket connection error:', error);
       this.isConnected = false;
+      
+      // Show user-friendly error message
+      if (error.message.includes('timeout')) {
+        toast.error('Connection timeout. Please check your internet connection.');
+      } else {
+        toast.error('Unable to connect to real-time services. Some features may be limited.');
+      }
+    });
+
+    this.socket.on('reconnect', (attemptNumber) => {
+      console.log('Socket reconnected after', attemptNumber, 'attempts');
+      toast.success('Connection restored!');
+    });
+
+    this.socket.on('reconnect_error', (error) => {
+      console.error('Socket reconnection error:', error);
     });
 
     // Set up default event listeners

@@ -27,9 +27,14 @@ export default defineConfig(({ command, mode }) => {
     build: {
       rollupOptions: {
         output: {
-          manualChunks: undefined,
+          manualChunks: {
+            vendor: ['react', 'react-dom', 'react-router-dom'],
+            ui: ['@mui/material', '@mui/icons-material', 'lucide-react'],
+            utils: ['axios', 'socket.io-client', 'react-hot-toast']
+          },
         },
       },
+      chunkSizeWarningLimit: 1000,
     },
   }
 })

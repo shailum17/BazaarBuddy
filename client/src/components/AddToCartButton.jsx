@@ -7,6 +7,15 @@ const AddToCartButton = ({ product, className = '' }) => {
   const [quantity, setQuantity] = useState(1);
   const [showQuantity, setShowQuantity] = useState(false);
 
+  // Safety check for product
+  if (!product || !product._id) {
+    return (
+      <div className={`${className} text-sm text-gray-500`}>
+        Product unavailable
+      </div>
+    );
+  }
+
   const currentQuantity = getItemQuantity(product._id);
   const inCart = isInCart(product._id);
 

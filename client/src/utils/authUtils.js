@@ -1,7 +1,19 @@
 // Authentication utility functions
 
+export const getStoredRefreshToken = () => {
+  return localStorage.getItem('refreshToken');
+};
+
+export const setAuthTokens = (token, refreshToken) => {
+  localStorage.setItem('token', token);
+  if (refreshToken) {
+    localStorage.setItem('refreshToken', refreshToken);
+  }
+};
+
 export const clearAuthData = () => {
   localStorage.removeItem('token');
+  localStorage.removeItem('refreshToken');
   // Clear any other auth-related data
   sessionStorage.clear();
 };

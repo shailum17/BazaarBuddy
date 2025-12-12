@@ -28,6 +28,13 @@ const cartReducer = (state, action) => {
   switch (action.type) {
     case CART_ACTIONS.ADD_ITEM: {
       const { product, quantity = 1 } = action.payload;
+      
+      // Safety check for product
+      if (!product || !product._id) {
+        console.error('Invalid product in ADD_ITEM:', product);
+        return state;
+      }
+      
       const existingItemIndex = state.items.findIndex(
         item => item.product._id === product._id
       );
@@ -42,11 +49,11 @@ const cartReducer = (state, action) => {
           items: updatedItems
         };
       } else {
-        // Add new item - Fixed: Store only supplier ID
+        // Add new item - Fixed: Store only supplier ID with safety check
         const newItem = {
           product,
           quantity,
-          supplierId: product.supplier._id, // Fixed: Store only ID
+          supplierId: product.supplier?._id || null, // Fixed: Safe access to supplier ID
           addedAt: new Date().toISOString()
         };
         
@@ -173,6 +180,13 @@ export const CartProvider = ({ children }) => {
 
   // Cart actions
   const addToCart = (product, quantity = 1) => {
+    // Safety check for product
+    if (!product || !product._id || !product.name) {
+      console.error('Invalid product in addToCart:', product);
+      toast.error('Cannot add invalid product to cart');
+      return;
+    }
+    
     dispatch({ type: CART_ACTIONS.ADD_ITEM, payload: { product, quantity } });
     toast.success(`${product.name} added to cart!`);
   };
@@ -195,27 +209,35 @@ export const CartProvider = ({ children }) => {
   };
 
   const getItemQuantity = (productId) => {
-    const item = cartState.items.find(item => item.product._id === productId);
+    if (!productId) return 0;
+    const item = cartState.items.find(item => item.product?._id === productId);
     return item ? item.quantity : 0;
   };
 
   const isInCart = (productId) => {
-    return cartState.items.some(item => item.product._id === productId);
+    if (!productId) return false;
+    return cartState.items.some(item => item.product?._id === productId);
   };
 
   const getCartBySupplier = () => {
     const supplierGroups = {};
     cartState.items.forEach(item => {
+      // Safety checks
+      if (!item || !item.product || !item.supplierId) {
+        console.warn('Invalid cart item:', item);
+        return;
+      }
+      
       const supplierId = item.supplierId; // This is the supplier ID we stored
       if (!supplierGroups[supplierId]) {
         supplierGroups[supplierId] = {
-          supplier: item.product.supplier, // This is the full supplier object
+          supplier: item.product.supplier || { name: 'Unknown Supplier', _id: supplierId }, // Fallback supplier object
           items: [],
           subtotal: 0
         };
       }
       supplierGroups[supplierId].items.push(item);
-      supplierGroups[supplierId].subtotal += item.product.price * item.quantity;
+      supplierGroups[supplierId].subtotal += (item.product.price || 0) * (item.quantity || 0);
     });
     return supplierGroups;
   };

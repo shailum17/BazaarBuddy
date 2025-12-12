@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Users, Package, TrendingUp, Shield } from 'lucide-react';
+import ScrollReveal from 'scrollreveal';
+import ThreeScene from '../components/ThreeScene';
 
 const Home = () => {
   const features = [
@@ -33,10 +35,41 @@ const Home = () => {
     { number: '95%', label: 'On‑time delivery' }
   ];
 
+  const heroRef = useRef(null);
+  const statsRef = useRef(null);
+  const featuresRef = useRef(null);
+  const howItWorksRef = useRef(null);
+  const ctaRef = useRef(null);
+
+  useEffect(() => {
+    const sr = ScrollReveal({
+      distance: '60px',
+      duration: 2500,
+      delay: 400,
+      reset: true,
+    });
+
+    if (heroRef.current) {
+      sr.reveal(heroRef.current, { origin: 'top', interval: 100 });
+    }
+    if (statsRef.current) {
+      sr.reveal(statsRef.current, { origin: 'bottom', interval: 100 });
+    }
+    if (featuresRef.current) {
+      sr.reveal(featuresRef.current, { origin: 'bottom', interval: 100 });
+    }
+    if (howItWorksRef.current) {
+      sr.reveal(howItWorksRef.current, { origin: 'bottom', interval: 100 });
+    }
+    if (ctaRef.current) {
+      sr.reveal(ctaRef.current, { origin: 'bottom' });
+    }
+  }, []);
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary-50 to-secondary-50 py-24 animate-fadeIn">
+      <section ref={heroRef} className="relative overflow-hidden bg-gradient-to-br from-primary-50 to-secondary-50 py-24">
         <div className="pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(400px_200px_at_20%_10%,black,transparent)]">
           <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-primary-200 blur-3xl"></div>
           <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-secondary-200 blur-3xl"></div>
@@ -54,7 +87,7 @@ const Home = () => {
               Discover verified suppliers, transparent pricing, and fast ordering — purpose‑built for
               street food businesses.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slideUp">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 to="/register"
                 className="btn-primary text-lg px-8 py-3 flex items-center justify-center space-x-2 hover:shadow-md"
@@ -69,23 +102,19 @@ const Home = () => {
                 Explore suppliers
               </Link>
             </div>
-            {/* Floating food emojis */}
-            <div className="relative mx-auto mt-10 h-16 max-w-xl">
-              <span className="absolute left-0 top-0 text-3xl select-none animate-float">🍜</span>
-              <span className="absolute left-1/3 -top-2 text-3xl select-none animate-drift">🌮</span>
-              <span className="absolute left-2/3 top-0 text-3xl select-none animate-float [animation-delay:800ms]">🥙</span>
-              <span className="absolute right-0 -top-1 text-3xl select-none animate-drift [animation-delay:1200ms]">🍢</span>
+            <div className="relative mx-auto mt-10 h-96 max-w-xl">
+              <ThreeScene />
             </div>
           </div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-white">
+      <section ref={statsRef} className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
             {stats.map((stat, index) => (
-              <div key={index} className="text-center animate-scaleIn bg-gray-50 rounded-xl p-6 ring-1 ring-gray-100" style={{animationDelay: `${index * 80}ms`}}>
+              <div key={index} className="text-center bg-gray-50 rounded-xl p-6 ring-1 ring-gray-100">
                 <div className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-1">
                   {stat.number}
                 </div>
@@ -97,7 +126,7 @@ const Home = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-gray-50">
+      <section ref={featuresRef} className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3">
@@ -109,7 +138,7 @@ const Home = () => {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <div key={index} className="card text-center animate-slideUp" style={{animationDelay: `${index * 120}ms`}}>
+              <div key={index} className="card text-center">
                 <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <div className="text-primary-600">
                     {feature.icon}
@@ -134,7 +163,7 @@ const Home = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
               {[{e:'🍞',t:'Bakery'},{e:'🥬',t:'Fresh produce'},{e:'🧀',t:'Dairy & cheese'},{e:'🌶️',t:'Spices'}].map((c, i) => (
                 <Link key={i} to="/vendor/products" className="group">
-                  <div className="rounded-xl bg-white ring-1 ring-gray-200 p-5 hover:shadow-md transition-all animate-scaleIn" style={{animationDelay: `${i*100}ms`}}>
+                  <div className="rounded-xl bg-white ring-1 ring-gray-200 p-5 hover:shadow-md transition-all">
                     <div className="text-3xl mb-2 transition-transform group-hover:-translate-y-0.5">{c.e}</div>
                     <div className="font-medium text-gray-900">{c.t}</div>
                     <div className="text-sm text-gray-500">Tap to explore</div>
@@ -147,7 +176,8 @@ const Home = () => {
       </section>
 
       {/* How It Works */}
-      <section className="py-20 bg-white">
+      <section ref={howItWorksRef} className="py-20 bg-white">
+.
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">
@@ -181,7 +211,7 @@ const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-primary-600">
+      <section ref={ctaRef} className="py-20 bg-primary-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4">
             Grow with BazaarBuddy

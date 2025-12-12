@@ -24,10 +24,12 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle auth errors
+// Response interceptor to handle auth errors and token refresh
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const originalRequest = error.config;
+
     // Log error details for debugging
     console.error('API Error:', {
       url: error.config?.url,
@@ -37,12 +39,47 @@ api.interceptors.response.use(
       response: error.response?.data
     });
 
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      // Dispatch custom event for auth failure
-      window.dispatchEvent(new CustomEvent('auth:unauthorized', {
-        detail: { message: 'Session expired. Please login again.' }
-      }));
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      // Try to refresh token
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (refreshToken) {
+        try {
+          const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+            refreshToken
+          });
+
+          const { token, refreshToken: newRefreshToken } = response.data;
+          
+          // Update stored tokens
+          localStorage.setItem('token', token);
+          if (newRefreshToken) {
+            localStorage.setItem('refreshToken', newRefreshToken);
+          }
+
+          // Update default header
+          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          originalRequest.headers['Authorization'] = `Bearer ${token}`;
+
+          // Retry original request
+          return api(originalRequest);
+        } catch (refreshError) {
+          console.error('Token refresh failed:', refreshError);
+          // Clear tokens and redirect to login
+          localStorage.removeItem('token');
+          localStorage.removeItem('refreshToken');
+          window.dispatchEvent(new CustomEvent('auth:unauthorized', {
+            detail: { message: 'Session expired. Please login again.' }
+          }));
+        }
+      } else {
+        // No refresh token available
+        localStorage.removeItem('token');
+        window.dispatchEvent(new CustomEvent('auth:unauthorized', {
+          detail: { message: 'Session expired. Please login again.' }
+        }));
+      }
     } else if (error.code === 'ECONNABORTED') {
       console.error('Request timeout - server might be down');
     } else if (!error.response) {

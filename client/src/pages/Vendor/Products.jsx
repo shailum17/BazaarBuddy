@@ -56,6 +56,10 @@ const Products = () => {
       console.log('Testing API connection...');
       const response = await api.get('/test/products');
       console.log('Test API response:', response.data);
+      
+      // Also test public products endpoint
+      const publicResponse = await api.get('/products/search?limit=1');
+      console.log('Public products API response:', publicResponse.data);
     } catch (error) {
       console.error('Test API error:', error);
     }
@@ -71,7 +75,20 @@ const Products = () => {
       });
 
       console.log('Fetching products with params:', params.toString());
-      const response = await api.get(`/vendors/products/search?${params}`);
+      
+      // Try vendor endpoint first, fallback to public endpoint if unauthorized
+      let response;
+      try {
+        response = await api.get(`/vendors/products/search?${params}`);
+      } catch (vendorError) {
+        if (vendorError.response?.status === 401 || vendorError.response?.status === 403) {
+          console.log('Using public products endpoint for unauthenticated user');
+          response = await api.get(`/products/search?${params}`);
+        } else {
+          throw vendorError;
+        }
+      }
+      
       console.log('Products response:', response.data);
       
       if (response.data.success && response.data.data) {
