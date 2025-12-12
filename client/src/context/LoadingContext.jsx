@@ -13,9 +13,14 @@ export const useLoading = () => {
 export const LoadingProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
 
+  const showLoading = () => setLoading(true);
+  const hideLoading = () => setLoading(false);
+
   const value = {
     loading,
     setLoading,
+    showLoading,
+    hideLoading,
   };
 
   return (
